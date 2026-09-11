@@ -1,0 +1,114 @@
+{
+  "app": {
+    "title": "My Digital Library"
+  },
+  "nav": {
+    "library": "Library",
+    "wishlist": "Wishlist",
+    "logout": "Log out"
+  },
+  "auth": {
+    "login": {
+      "title": "Log in",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Log in"
+    }
+  },
+  "library": {
+    "list": {
+      "title": "My Library",
+      "empty": "You haven't added any books yet.",
+      "add": "Add book",
+      "search": "Search by title..."
+    },
+    "detail": {
+      "title": "Details",
+      "back": "Back to list",
+      "delete": "Delete",
+      "deleteConfirm": "Are you sure you want to delete this book?",
+      "note": "Note"
+    },
+    "form": {
+      "addTitle": "Add a book",
+      "workTitle": "Title",
+      "authorNames": "Author(s) (comma-separated)",
+      "format": "Format",
+      "status": "Status",
+      "isbn": "ISBN",
+      "publisher": "Publisher",
+      "publicationYear": "Publication year",
+      "pageCount": "Page count",
+      "acquiredOn": "Acquired on",
+      "acquisitionMethod": "Acquisition method",
+      "price": "Price",
+      "currency": "Currency",
+      "source": "Source",
+      "save": "Save",
+      "cancel": "Cancel",
+      "titleRequired": "Title is required."
+    },
+    "format": {
+      "Physical": "Physical",
+      "Ebook": "Ebook",
+      "Audiobook": "Audiobook"
+    },
+    "status": {
+      "Owned": "Owned",
+      "Borrowed": "Borrowed",
+      "LentOut": "Lent out",
+      "Sold": "Sold",
+      "GivenAway": "Given away"
+    },
+    "acquisitionMethod": {
+      "Bought": "Bought",
+      "Gift": "Gift",
+      "Borrowed": "Borrowed",
+      "Inherited": "Inherited",
+      "Downloaded": "Downloaded"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "auth": {
+      "invalid_credentials": "Wrong email or password."
+    },
+    "isbn": {
+      "invalid": "Invalid ISBN."
+    },
+    "edition": {
+      "duplicate": "An edition with this ISBN already exists.",
+      "not_found": "Edition not found.",
+      "page_count_requires_print_or_ebook": "Page count only applies to physical/ebook editions.",
+      "cover_type_requires_physical": "Cover type only applies to physical editions.",
+      "audio_details_require_audiobook": "Narrator/duration only apply to audiobooks."
+    },
+    "work": {
+      "not_found": "Work not found.",
+      "title_required": "Title is required.",
+      "series_position_required": "Series position is required when a series name is set.",
+      "author_already_added": "This author already has this role."
+    },
+    "library_item": {
+      "not_found": "Item not found.",
+      "location_requires_physical": "Location only applies to physical books.",
+      "invalid_edition_reference": "Provide either editionId, or both work and edition, but not both."
+    },
+    "wishlist_entry": {
+      "not_found": "Entry not found.",
+      "invalid_work_reference": "Provide either workId or work, but not both.",
+      "already_fulfilled": "This wishlist entry has already been fulfilled."
+    },
+    "antiforgery": {
+      "invalid_token": "Your session expired. Please reload the page."
+    },
+    "validation": {
+      "failed": "Invalid data."
+    }
+  }
+}

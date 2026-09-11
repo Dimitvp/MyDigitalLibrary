@@ -1,0 +1,114 @@
+{
+  "app": {
+    "title": "Моята дигитална библиотека"
+  },
+  "nav": {
+    "library": "Библиотека",
+    "wishlist": "Искам я",
+    "logout": "Изход"
+  },
+  "auth": {
+    "login": {
+      "title": "Вход",
+      "email": "Имейл",
+      "password": "Парола",
+      "submit": "Вход"
+    }
+  },
+  "library": {
+    "list": {
+      "title": "Моята библиотека",
+      "empty": "Все още нямаш добавени книги.",
+      "add": "Добави книга",
+      "search": "Търсене по заглавие..."
+    },
+    "detail": {
+      "title": "Детайли",
+      "back": "Назад към списъка",
+      "delete": "Изтрий",
+      "deleteConfirm": "Сигурен ли си, че искаш да изтриеш тази книга?",
+      "note": "Бележка"
+    },
+    "form": {
+      "addTitle": "Добавяне на книга",
+      "workTitle": "Заглавие",
+      "authorNames": "Автор(и) (разделени със запетая)",
+      "format": "Формат",
+      "status": "Статус",
+      "isbn": "ISBN",
+      "publisher": "Издателство",
+      "publicationYear": "Година на издаване",
+      "pageCount": "Брой страници",
+      "acquiredOn": "Дата на придобиване",
+      "acquisitionMethod": "Начин на придобиване",
+      "price": "Цена",
+      "currency": "Валута",
+      "source": "Източник",
+      "save": "Запази",
+      "cancel": "Отказ",
+      "titleRequired": "Заглавието е задължително."
+    },
+    "format": {
+      "Physical": "Хартиена",
+      "Ebook": "Електронна",
+      "Audiobook": "Аудио"
+    },
+    "status": {
+      "Owned": "Притежавана",
+      "Borrowed": "Заета от друг",
+      "LentOut": "Дадена назаем",
+      "Sold": "Продадена",
+      "GivenAway": "Подарена"
+    },
+    "acquisitionMethod": {
+      "Bought": "Купена",
+      "Gift": "Подарък",
+      "Borrowed": "Заета",
+      "Inherited": "Наследена",
+      "Downloaded": "Изтеглена"
+    }
+  },
+  "common": {
+    "loading": "Зареждане...",
+    "save": "Запази",
+    "cancel": "Отказ"
+  },
+  "errors": {
+    "generic": "Нещо се обърка. Опитай пак.",
+    "auth": {
+      "invalid_credentials": "Грешен имейл или парола."
+    },
+    "isbn": {
+      "invalid": "Невалиден ISBN."
+    },
+    "edition": {
+      "duplicate": "Вече има издание с този ISBN.",
+      "not_found": "Изданието не е намерено.",
+      "page_count_requires_print_or_ebook": "Брой страници важи само за хартиени/електронни издания.",
+      "cover_type_requires_physical": "Тип корица важи само за хартиени издания.",
+      "audio_details_require_audiobook": "Разказвач/продължителност важат само за аудиокниги."
+    },
+    "work": {
+      "not_found": "Произведението не е намерено.",
+      "title_required": "Заглавието е задължително.",
+      "series_position_required": "Позицията в поредицата е задължителна, ако е зададено име на поредица.",
+      "author_already_added": "Този автор вече е добавен с тази роля."
+    },
+    "library_item": {
+      "not_found": "Записът не е намерен.",
+      "location_requires_physical": "Локация важи само за хартиени книги.",
+      "invalid_edition_reference": "Подай или editionId, или work и edition, но не и двете."
+    },
+    "wishlist_entry": {
+      "not_found": "Записът не е намерен.",
+      "invalid_work_reference": "Подай или workId, или work, но не и двете.",
+      "already_fulfilled": "Това желание вече е изпълнено."
+    },
+    "antiforgery": {
+      "invalid_token": "Сесията е изтекла. Презареди страницата."
+    },
+    "validation": {
+      "failed": "Невалидни данни."
+    }
+  }
+}
