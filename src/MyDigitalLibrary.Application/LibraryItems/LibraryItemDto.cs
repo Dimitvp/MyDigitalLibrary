@@ -18,7 +18,10 @@ public sealed record LibraryItemDto(
     OwnershipStatus Status,
     AcquisitionDto Acquisition,
     PhysicalLocationDto? Location,
-    string? PersonalNote);
+    string? PersonalNote,
+    string WorkTitle,
+    IReadOnlyList<string> AuthorNames,
+    string? CoverImageUrl);
 
 /// <summary>Nested edition fields for the composite create payload — Format comes
 /// from the request's top-level Format, not repeated here (plan section 4.1).</summary>
@@ -54,7 +57,7 @@ public sealed record UpdateStatusRequest(OwnershipStatus Status);
 
 public static class LibraryItemMapper
 {
-    public static LibraryItemDto ToDto(DomainLibraryItem item) => new(
+    public static LibraryItemDto ToDto(DomainLibraryItem item, EditionDisplayInfo displayInfo) => new(
         item.Id, item.UserId, item.EditionId, item.Format, item.Status,
         new AcquisitionDto(
             item.Acquisition.AcquiredOn,
@@ -62,5 +65,8 @@ public static class LibraryItemMapper
             item.Acquisition.Price is null ? null : new MoneyDto(item.Acquisition.Price.Amount, item.Acquisition.Price.CurrencyCode),
             item.Acquisition.Source),
         item.Location is null ? null : new PhysicalLocationDto(item.Location.Room, item.Location.Shelf, item.Location.Box),
-        item.PersonalNote);
+        item.PersonalNote,
+        displayInfo.WorkTitle,
+        displayInfo.AuthorNames,
+        displayInfo.CoverImageUrl);
 }

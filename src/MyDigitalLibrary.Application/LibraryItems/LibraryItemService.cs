@@ -35,17 +35,25 @@ public sealed class LibraryItemService(IApplicationDbContext db, BookCatalogServ
 
         var totalCount = await query.CountAsync(ct);
 
-        var items = await ProjectToDto(query)
+        var rows = await ProjectToRow(query)
             .Skip((normalizedPage - 1) * normalizedPageSize)
             .Take(normalizedPageSize)
             .ToListAsync(ct);
+
+        var displayInfo = await catalog.GetEditionDisplayInfoAsync(rows.Select(r => r.EditionId), ct);
+        var items = rows.Select(r => r.ToDto(displayInfo.GetValueOrDefault(r.EditionId, EmptyDisplayInfo))).ToList();
 
         return new PagedResult<LibraryItemDto>(items, normalizedPage, normalizedPageSize, totalCount);
     }
 
     public async Task<LibraryItemDto> GetAsync(Guid id, Guid userId, CancellationToken ct)
-        => await ProjectToDto(db.LibraryItems.AsNoTracking().Where(li => li.Id == id && li.UserId == userId)).FirstOrDefaultAsync(ct)
+    {
+        var row = await ProjectToRow(db.LibraryItems.AsNoTracking().Where(li => li.Id == id && li.UserId == userId)).FirstOrDefaultAsync(ct)
             ?? throw NotFound(id);
+
+        var displayInfo = await catalog.GetEditionDisplayInfoAsync([row.EditionId], ct);
+        return row.ToDto(displayInfo.GetValueOrDefault(row.EditionId, EmptyDisplayInfo));
+    }
 
     public async Task<LibraryItemDto> CreateAsync(CreateLibraryItemRequest request, Guid userId, CancellationToken ct)
     {
@@ -92,7 +100,8 @@ public sealed class LibraryItemService(IApplicationDbContext db, BookCatalogServ
         db.LibraryItems.Add(item);
         await db.SaveChangesAsync(ct);
 
-        return LibraryItemMapper.ToDto(item);
+        var displayInfo = await catalog.GetEditionDisplayInfoAsync([editionId], ct);
+        return LibraryItemMapper.ToDto(item, displayInfo.GetValueOrDefault(editionId, EmptyDisplayInfo));
     }
 
     public async Task UpdateAsync(Guid id, UpdateLibraryItemRequest request, Guid userId, CancellationToken ct)
@@ -134,6 +143,8 @@ public sealed class LibraryItemService(IApplicationDbContext db, BookCatalogServ
         await db.SaveChangesAsync(ct);
     }
 
+    private static readonly EditionDisplayInfo EmptyDisplayInfo = new("?", [], null);
+
     private static NotFoundException NotFound(Guid id) => new("library_item.not_found", $"Library item '{id}' was not found.");
 
     private static Acquisition ToDomainAcquisition(AcquisitionDto dto) => new(
@@ -142,7 +153,7 @@ public sealed class LibraryItemService(IApplicationDbContext db, BookCatalogServ
         dto.Price is null ? null : new Money(dto.Price.Amount, dto.Price.CurrencyCode),
         dto.Source);
 
-    private static IQueryable<LibraryItemDto> ProjectToDto(IQueryable<LibraryItem> source) => source.Select(li => new LibraryItemDto(
+    private static IQueryable<LibraryItemRow> ProjectToRow(IQueryable<LibraryItem> source) => source.Select(li => new LibraryItemRow(
         li.Id, li.UserId, li.EditionId, li.Format, li.Status,
         new AcquisitionDto(
             li.Acquisition.AcquiredOn,
@@ -151,4 +162,20 @@ public sealed class LibraryItemService(IApplicationDbContext db, BookCatalogServ
             li.Acquisition.Source),
         li.Location == null ? null : new PhysicalLocationDto(li.Location.Room, li.Location.Shelf, li.Location.Box),
         li.PersonalNote));
+}
+
+/// <summary>Everything a query can project directly; catalog display info (title/authors/cover) is stitched on afterward.</summary>
+internal sealed record LibraryItemRow(
+    Guid Id,
+    Guid UserId,
+    Guid EditionId,
+    BookFormat Format,
+    OwnershipStatus Status,
+    AcquisitionDto Acquisition,
+    PhysicalLocationDto? Location,
+    string? PersonalNote)
+{
+    public LibraryItemDto ToDto(EditionDisplayInfo displayInfo) => new(
+        Id, UserId, EditionId, Format, Status, Acquisition, Location, PersonalNote,
+        displayInfo.WorkTitle, displayInfo.AuthorNames, displayInfo.CoverImageUrl);
 }

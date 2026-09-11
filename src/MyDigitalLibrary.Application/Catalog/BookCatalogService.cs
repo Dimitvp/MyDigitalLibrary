@@ -119,4 +119,57 @@ public sealed class BookCatalogService(IApplicationDbContext db)
         var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         return parts.Length < 2 ? fullName : $"{parts[^1]}, {string.Join(' ', parts[..^1])}";
     }
+
+    /// <summary>
+    /// Denormalized title/authors/cover for a batch of editions — list and
+    /// detail screens need this (a LibraryItem only carries an EditionId; the
+    /// domain deliberately has no navigation across aggregates to get there).
+    /// </summary>
+    public async Task<Dictionary<Guid, EditionDisplayInfo>> GetEditionDisplayInfoAsync(IEnumerable<Guid> editionIds, CancellationToken ct)
+    {
+        var ids = editionIds.Distinct().ToList();
+        if (ids.Count == 0)
+            return [];
+
+        var editions = await db.Editions.AsNoTracking()
+            .Where(e => ids.Contains(e.Id))
+            .Select(e => new { e.Id, e.WorkId, e.CoverImageUrl })
+            .ToListAsync(ct);
+
+        var workInfo = await GetWorkDisplayInfoAsync(editions.Select(e => e.WorkId), ct);
+
+        return editions.ToDictionary(
+            e => e.Id,
+            e => new EditionDisplayInfo(
+                workInfo.TryGetValue(e.WorkId, out var w) ? w.Title : "?",
+                workInfo.TryGetValue(e.WorkId, out var w2) ? w2.AuthorNames : [],
+                e.CoverImageUrl?.ToString()));
+    }
+
+    /// <summary>Denormalized title/authors for a batch of works — same reason as <see cref="GetEditionDisplayInfoAsync"/>.</summary>
+    public async Task<Dictionary<Guid, WorkDisplayInfo>> GetWorkDisplayInfoAsync(IEnumerable<Guid> workIds, CancellationToken ct)
+    {
+        var ids = workIds.Distinct().ToList();
+        if (ids.Count == 0)
+            return [];
+
+        var works = await db.Works.AsNoTracking()
+            .Where(w => ids.Contains(w.Id))
+            .Select(w => new { w.Id, w.Title, AuthorIds = w.Authors.Select(a => a.AuthorId).ToList() })
+            .ToListAsync(ct);
+
+        var authorIds = works.SelectMany(w => w.AuthorIds).Distinct().ToList();
+        var authorNames = await db.Authors.AsNoTracking()
+            .Where(a => authorIds.Contains(a.Id))
+            .Select(a => new { a.Id, a.FullName })
+            .ToDictionaryAsync(a => a.Id, a => a.FullName, ct);
+
+        return works.ToDictionary(
+            w => w.Id,
+            w => new WorkDisplayInfo(w.Title, w.AuthorIds.Select(id => authorNames.GetValueOrDefault(id, "?")).ToList()));
+    }
 }
+
+public sealed record EditionDisplayInfo(string WorkTitle, IReadOnlyList<string> AuthorNames, string? CoverImageUrl);
+
+public sealed record WorkDisplayInfo(string Title, IReadOnlyList<string> AuthorNames);

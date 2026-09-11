@@ -15,7 +15,9 @@ public sealed record WishlistEntryDto(
     MoneyDto? MaxPrice,
     string? Note,
     DateOnly AddedOn,
-    bool IsFulfilled);
+    bool IsFulfilled,
+    string WorkTitle,
+    IReadOnlyList<string> AuthorNames);
 
 /// <summary>oneOf: either WorkId (existing work) or Work (create a new one) — see plan section 4.1.</summary>
 public sealed record CreateWishlistEntryRequest(
@@ -31,8 +33,9 @@ public sealed record FulfillWishlistEntryRequest(Guid EditionId, AcquisitionDto 
 
 public static class WishlistEntryMapper
 {
-    public static WishlistEntryDto ToDto(DomainWishlistEntry entry) => new(
+    public static WishlistEntryDto ToDto(DomainWishlistEntry entry, WorkDisplayInfo displayInfo) => new(
         entry.Id, entry.UserId, entry.WorkId, entry.PreferredEditionId, entry.DesiredFormat, entry.Priority,
         entry.MaxPrice is null ? null : new MoneyDto(entry.MaxPrice.Amount, entry.MaxPrice.CurrencyCode),
-        entry.Note, entry.AddedOn, entry.IsFulfilled);
+        entry.Note, entry.AddedOn, entry.IsFulfilled,
+        displayInfo.Title, displayInfo.AuthorNames);
 }

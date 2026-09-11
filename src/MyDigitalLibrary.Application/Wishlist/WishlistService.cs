@@ -17,7 +17,8 @@ public sealed class WishlistService(IApplicationDbContext db, BookCatalogService
             .OrderByDescending(w => w.AddedOn)
             .ToListAsync(ct);
 
-        return entries.Select(WishlistEntryMapper.ToDto).ToList();
+        var displayInfo = await catalog.GetWorkDisplayInfoAsync(entries.Select(e => e.WorkId), ct);
+        return entries.Select(e => WishlistEntryMapper.ToDto(e, displayInfo.GetValueOrDefault(e.WorkId, EmptyDisplayInfo))).ToList();
     }
 
     public async Task<WishlistEntryDto> CreateAsync(CreateWishlistEntryRequest request, Guid userId, CancellationToken ct)
@@ -57,7 +58,8 @@ public sealed class WishlistService(IApplicationDbContext db, BookCatalogService
         db.WishlistEntries.Add(entry);
         await db.SaveChangesAsync(ct);
 
-        return WishlistEntryMapper.ToDto(entry);
+        var displayInfo = await catalog.GetWorkDisplayInfoAsync([workId], ct);
+        return WishlistEntryMapper.ToDto(entry, displayInfo.GetValueOrDefault(workId, EmptyDisplayInfo));
     }
 
     public async Task<LibraryItemDto> FulfillAsync(Guid id, FulfillWishlistEntryRequest request, Guid userId, CancellationToken ct)
@@ -83,6 +85,10 @@ public sealed class WishlistService(IApplicationDbContext db, BookCatalogService
         db.LibraryItems.Add(libraryItem);
         await db.SaveChangesAsync(ct);
 
-        return LibraryItemMapper.ToDto(libraryItem);
+        var editionDisplayInfo = await catalog.GetEditionDisplayInfoAsync([request.EditionId], ct);
+        return LibraryItemMapper.ToDto(libraryItem, editionDisplayInfo.GetValueOrDefault(request.EditionId, EmptyEditionDisplayInfo));
     }
+
+    private static readonly WorkDisplayInfo EmptyDisplayInfo = new("?", []);
+    private static readonly EditionDisplayInfo EmptyEditionDisplayInfo = new("?", [], null);
 }
