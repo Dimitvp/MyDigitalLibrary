@@ -53,4 +53,6 @@ public sealed class LibraryItem : Entity
     public void ChangeStatus(OwnershipStatus status) => Status = status;
 
     public void SetPersonalNote(string? note) => PersonalNote = note;
+
+    public void UpdateAcquisition(Acquisition acquisition) => Acquisition = acquisition;
 }

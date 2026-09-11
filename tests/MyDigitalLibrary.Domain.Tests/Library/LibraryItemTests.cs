@@ -40,4 +40,15 @@ public class LibraryItemTests
 
         act.Should().NotThrow();
     }
+
+    [Fact]
+    public void UpdateAcquisition_replaces_the_acquisition()
+    {
+        var item = CreateItem(BookFormat.Physical);
+        var corrected = new Acquisition(new DateOnly(2020, 1, 1), AcquisitionMethod.Gift, null, "Birthday gift");
+
+        item.UpdateAcquisition(corrected);
+
+        item.Acquisition.Should().Be(corrected);
+    }
 }
