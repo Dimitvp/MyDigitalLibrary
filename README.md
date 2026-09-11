@@ -3,9 +3,9 @@
 Личен каталог за книги (хартиени / ebook / аудио) — какво притежавам, какво искам,
 какво чета в момента. Виж пълния план за имплементация в [docs/PLAN.md](docs/PLAN.md).
 
-> **Статус:** Етап 3 — CRUD API. Домейн (Етап 1), EF Core/Postgres персистентност
-> (Етап 2) и REST API за `works`/`editions`/`library-items`/`wishlist` (Етап 3)
-> са готови. Auth и фронтенд идват в следващите етапи.
+> **Статус:** Етап 4 — Auth. Домейн (Етап 1), EF Core/Postgres персистентност
+> (Етап 2), REST API (Етап 3) и ASP.NET Core Identity с cookie auth + global
+> query filters (Етап 4) са готови. Фронтендът идва в следващите етапи.
 
 ## Стек
 
@@ -45,6 +45,10 @@ dotnet test
 dotnet run --project src/MyDigitalLibrary.Api
 ```
 
+`MyDigitalLibrary.Api.IntegrationTests` spins up a real Postgres container via
+Testcontainers (plan section 1) — Docker must be running for `dotnet test` to
+pass.
+
 ### Frontend
 
 ```powershell
@@ -72,6 +76,8 @@ docker compose up --build -d
 API-то (виж [docs/PLAN.md](docs/PLAN.md) т. 4/4.1 за пълния контракт):
 
 ```text
+POST        /api/v1/auth/login, /api/v1/auth/logout
+GET         /api/v1/auth/me, /api/v1/auth/antiforgery
 GET/POST    /api/v1/works, /api/v1/works/{id}, /api/v1/works/{id}/editions
 GET/PUT     /api/v1/editions/{id}
 GET/POST    /api/v1/library-items, /api/v1/library-items/{id}
@@ -79,8 +85,11 @@ PATCH       /api/v1/library-items/{id}/location, /status
 GET/POST    /api/v1/wishlist, /api/v1/wishlist/{id}/fulfill
 ```
 
-Няма `auth` още (Етап 4) — всички заявки се третират като един фиксиран
-dev потребител.
+Всички ресурсни endpoints изискват вход (cookie auth); мутиращите заявки
+(POST/PUT/PATCH/DELETE) изискват и anti-forgery token в header `X-XSRF-TOKEN`,
+получен от `GET /api/v1/auth/antiforgery`. Регистрация през UI изключена
+(`Auth:AllowRegistration = false`) — единственият потребител е seed admin-ът
+от `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` (Development-only, виж `.env.example`).
 
 `web` (Angular, зад nginx) идва в Етап 10.
 
