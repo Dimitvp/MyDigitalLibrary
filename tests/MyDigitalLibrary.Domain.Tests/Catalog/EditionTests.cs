@@ -56,4 +56,57 @@ public class EditionTests
 
         edition.Extent.Should().Be(EditionExtent.FromDuration(TimeSpan.FromHours(12)));
     }
+
+    [Fact]
+    public void Enrich_fills_fields_from_a_provider_candidate()
+    {
+        var edition = new Edition(Guid.NewGuid(), BookFormat.Physical);
+
+        edition.Enrich("Ace Books", "en", null, 2005, 528, new Uri("https://covers.example/dune.jpg"), null, null);
+
+        edition.Publisher.Should().Be("Ace Books");
+        edition.Language.Should().Be("en");
+        edition.PublicationYear.Should().Be(2005);
+        edition.PageCount.Should().Be(528);
+        edition.CoverImageUrl.Should().Be(new Uri("https://covers.example/dune.jpg"));
+    }
+
+    [Fact]
+    public void Enrich_never_sets_page_count_on_an_audiobook()
+    {
+        var edition = new Edition(Guid.NewGuid(), BookFormat.Audiobook);
+
+        edition.Enrich(null, null, null, null, pageCount: 528, null, "Narrator", new AudioDuration(TimeSpan.FromHours(10)));
+
+        edition.PageCount.Should().BeNull();
+        edition.Narrator.Should().Be("Narrator");
+    }
+
+    [Fact]
+    public void Enrich_never_sets_narrator_or_duration_on_a_physical_edition()
+    {
+        var edition = new Edition(Guid.NewGuid(), BookFormat.Physical);
+
+        edition.Enrich(null, null, null, null, null, null, "Narrator", new AudioDuration(TimeSpan.FromHours(10)));
+
+        edition.Narrator.Should().BeNull();
+        edition.Duration.Should().BeNull();
+    }
+
+    [Fact]
+    public void Manually_edited_publisher_survives_a_subsequent_enrichment()
+    {
+        var edition = new Edition(Guid.NewGuid(), BookFormat.Physical);
+        edition.Enrich("Ace Books", "en", null, 2005, 528, null, null, null);
+
+        edition.SetPublicationDetails("My Local Publisher", edition.Language, edition.Translator, edition.PublicationYear, edition.PageCount);
+        edition.MarkFieldsOverridden(Edition.Fields.Publisher);
+
+        edition.Enrich("A Different Publisher", "bg", null, 2006, 704, null, null, null);
+
+        edition.Publisher.Should().Be("My Local Publisher", "the manual edit must not be overwritten by re-enrichment");
+        edition.Language.Should().Be("bg", "a field that was never manually edited stays enrichable");
+        edition.PublicationYear.Should().Be(2006);
+        edition.PageCount.Should().Be(704);
+    }
 }

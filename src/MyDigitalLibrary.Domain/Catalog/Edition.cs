@@ -12,6 +12,19 @@ namespace MyDigitalLibrary.Domain.Catalog;
 /// </summary>
 public sealed class Edition : Entity
 {
+    /// <summary>Field-name constants for <see cref="ManualFieldOverrides"/> — shared between manual-edit marking and <see cref="Enrich"/>.</summary>
+    public static class Fields
+    {
+        public const string Publisher = nameof(Edition.Publisher);
+        public const string Language = nameof(Edition.Language);
+        public const string Translator = nameof(Edition.Translator);
+        public const string PublicationYear = nameof(Edition.PublicationYear);
+        public const string PageCount = nameof(Edition.PageCount);
+        public const string CoverImageUrl = nameof(Edition.CoverImageUrl);
+        public const string Narrator = nameof(Edition.Narrator);
+        public const string Duration = nameof(Edition.Duration);
+    }
+
     public Guid WorkId { get; }
     public BookFormat Format { get; }
 
@@ -25,6 +38,7 @@ public sealed class Edition : Entity
     public Uri? CoverImageUrl { get; private set; }
     public string? Narrator { get; private set; }
     public AudioDuration? Duration { get; private set; }
+    public ManualFieldOverrides FieldOverrides { get; private set; } = ManualFieldOverrides.None;
 
     public Edition(Guid workId, BookFormat format)
     {
@@ -77,5 +91,51 @@ public sealed class Edition : Entity
 
         Narrator = narrator;
         Duration = duration;
+    }
+
+    /// <summary>Marks fields as manually set so a later <see cref="Enrich"/> call never overwrites them. Called by the PUT /editions/{id} handler, never by composite creation.</summary>
+    public void MarkFieldsOverridden(params string[] fields)
+    {
+        foreach (var field in fields)
+            FieldOverrides = FieldOverrides.WithOverridden(field);
+    }
+
+    /// <summary>
+    /// Applies importer-sourced metadata (plan section 5.5): fills a field only when the
+    /// candidate provides a value AND the field hasn't been manually overridden, and only
+    /// where the field is valid for this edition's <see cref="Format"/> (page count for
+    /// physical/ebook, narrator/duration for audiobooks) — never throws on a mismatch,
+    /// it simply skips the field, unlike the throwing setters used for manual edits.
+    /// </summary>
+    public void Enrich(
+        string? publisher, string? language, string? translator, int? publicationYear, int? pageCount,
+        Uri? coverImageUrl, string? narrator, AudioDuration? duration)
+    {
+        if (publisher is not null && !FieldOverrides.IsOverridden(Fields.Publisher))
+            Publisher = publisher;
+
+        if (language is not null && !FieldOverrides.IsOverridden(Fields.Language))
+            Language = language;
+
+        if (translator is not null && !FieldOverrides.IsOverridden(Fields.Translator))
+            Translator = translator;
+
+        if (publicationYear is not null and >= 1000 && !FieldOverrides.IsOverridden(Fields.PublicationYear))
+            PublicationYear = publicationYear;
+
+        if (pageCount is > 0 && Format != BookFormat.Audiobook && !FieldOverrides.IsOverridden(Fields.PageCount))
+            PageCount = pageCount;
+
+        if (coverImageUrl is not null && !FieldOverrides.IsOverridden(Fields.CoverImageUrl))
+            CoverImageUrl = coverImageUrl;
+
+        if (Format != BookFormat.Audiobook)
+            return;
+
+        if (narrator is not null && !FieldOverrides.IsOverridden(Fields.Narrator))
+            Narrator = narrator;
+
+        if (duration is not null && !FieldOverrides.IsOverridden(Fields.Duration))
+            Duration = duration;
     }
 }
