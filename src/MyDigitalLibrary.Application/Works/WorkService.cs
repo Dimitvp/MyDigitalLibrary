@@ -3,6 +3,7 @@ using MyDigitalLibrary.Application.Abstractions;
 using MyDigitalLibrary.Application.Catalog;
 using MyDigitalLibrary.Application.Common;
 using MyDigitalLibrary.Application.Editions;
+using MyDigitalLibrary.Domain.Catalog;
 using MyDigitalLibrary.Domain.ValueObjects;
 
 namespace MyDigitalLibrary.Application.Works;
@@ -67,6 +68,7 @@ public sealed class WorkService(IApplicationDbContext db, BookCatalogService cat
             ?? throw new NotFoundException("work.not_found", $"Work '{id}' was not found.");
 
         work.UpdateDetails(request.Title, request.OriginalTitle, request.Description, request.FirstPublicationYear);
+        work.MarkFieldsOverridden(Work.Fields.Title, Work.Fields.OriginalTitle, Work.Fields.Description, Work.Fields.FirstPublicationYear);
 
         await db.SaveChangesAsync(ct);
     }

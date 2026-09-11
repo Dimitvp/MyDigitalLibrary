@@ -49,6 +49,10 @@ public sealed class EditionService(IApplicationDbContext db)
         var duration = request.DurationMinutes is { } minutes ? new AudioDuration(TimeSpan.FromMinutes(minutes)) : null;
         edition.SetAudioDetails(request.Narrator, duration);
 
+        edition.MarkFieldsOverridden(
+            Edition.Fields.Publisher, Edition.Fields.Language, Edition.Fields.Translator,
+            Edition.Fields.PublicationYear, Edition.Fields.PageCount, Edition.Fields.Narrator, Edition.Fields.Duration);
+
         await db.SaveChangesAsync(ct);
     }
 
