@@ -3,15 +3,16 @@
 Личен каталог за книги (хартиени / ebook / аудио) — какво притежавам, какво искам,
 какво чета в момента. Виж пълния план за имплементация в [docs/PLAN.md](docs/PLAN.md).
 
-> **Статус:** Етап 0 — репо и скелет. Домейн логика, персистентност, API и
-> Docker Compose ще бъдат добавени в следващите етапи.
+> **Статус:** Етап 2 — персистентност. Домейн модел (Етап 1) и EF Core/Postgres
+> персистентност (Етап 2) са готови. API endpoints, auth и фронтенд идват в
+> следващите етапи.
 
 ## Стек
 
 - Backend: ASP.NET Core Web API, .NET 10
 - Frontend: Angular 22 (standalone components, signals)
-- База: PostgreSQL 17 + EF Core (от Етап 2)
-- Тестове: xUnit
+- База: PostgreSQL 17 + EF Core
+- Тестове: xUnit + FluentAssertions
 
 ## Структура на solution-а
 
@@ -54,7 +55,20 @@ npm start
 
 ### Docker
 
-Docker Compose (`db`, `api`, `web`) ще бъде добавен в Етап 2 / Етап 10 на плана.
+```powershell
+cp .env.example .env   # или ръчно създай .env със същите ключове
+docker compose up --build -d
+```
+
+Вдига `db` (Postgres 17) и `api`; API-то прилага EF Core миграциите и seed-ва
+минимални данни автоматично в Development. `docker-compose.override.yml`
+публикува портове само локално (по подразбиране `5532` за Postgres и `8081`
+за API — сменени от стандартните 5432/8080, ако вече имаш друг проект на тях).
+
+- `GET http://localhost:8081/health/live`
+- `GET http://localhost:8081/health/ready`
+
+`web` (Angular, зад nginx) идва в Етап 10.
 
 ## CI
 
