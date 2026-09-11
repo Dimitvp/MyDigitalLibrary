@@ -1,4 +1,5 @@
 using MyDigitalLibrary.Api.Filters;
+using MyDigitalLibrary.Application.Abstractions;
 using MyDigitalLibrary.Application.Catalog;
 using MyDigitalLibrary.Application.Works;
 
@@ -13,8 +14,8 @@ public static class WorkEndpoints
         group.MapGet("/", async (WorkService service, string? q, Guid? authorId, Guid? seriesId, int? page, int? pageSize, CancellationToken ct)
             => Results.Ok(await service.ListAsync(q, authorId, seriesId, page, pageSize, ct)));
 
-        group.MapGet("/{id:guid}", async (Guid id, WorkService service, CancellationToken ct)
-            => Results.Ok(await service.GetAsync(id, ct)));
+        group.MapGet("/{id:guid}", async (Guid id, WorkService service, ICurrentUser currentUser, CancellationToken ct)
+            => Results.Ok(await service.GetAsync(id, currentUser.UserId, ct)));
 
         group.MapPut("/{id:guid}", async (Guid id, UpdateWorkRequest request, WorkService service, CancellationToken ct) =>
         {
@@ -29,6 +30,18 @@ public static class WorkEndpoints
         {
             var edition = await service.AddEditionAsync(id, request, ct);
             return Results.Created($"/api/v1/works/{id}/editions/{edition.Id}", edition);
+        }).AddEndpointFilter<AntiforgeryFilter>();
+
+        group.MapPut("/{id:guid}/rating", async (Guid id, UpsertRatingRequest request, WorkService service, ICurrentUser currentUser, CancellationToken ct) =>
+        {
+            await service.RateAsync(id, request, currentUser.UserId, ct);
+            return Results.NoContent();
+        }).AddEndpointFilter<AntiforgeryFilter>();
+
+        group.MapPut("/{id:guid}/review", async (Guid id, UpsertReviewRequest request, WorkService service, ICurrentUser currentUser, CancellationToken ct) =>
+        {
+            await service.ReviewAsync(id, request, currentUser.UserId, ct);
+            return Results.NoContent();
         }).AddEndpointFilter<AntiforgeryFilter>();
     }
 }

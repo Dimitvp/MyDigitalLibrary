@@ -12,6 +12,13 @@ public sealed record WorkDetailDto(
     int? FirstPublicationYear,
     Guid? SeriesId,
     decimal? SeriesPosition,
-    IReadOnlyList<AuthorSummaryDto> Authors);
+    IReadOnlyList<AuthorSummaryDto> Authors,
+    int? MyRating,
+    string? MyReview);
 
 public sealed record UpdateWorkRequest(string Title, string? OriginalTitle, string? Description, int? FirstPublicationYear);
+
+/// <summary>Score is 1..10 (plan section 14 Q1, answered during Stage 1 — see WorkRating.MinScore/MaxScore).</summary>
+public sealed record UpsertRatingRequest(int Score);
+
+public sealed record UpsertReviewRequest(string Text);
