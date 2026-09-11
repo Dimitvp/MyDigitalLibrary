@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MyDigitalLibrary.Domain.Catalog;
 using MyDigitalLibrary.Domain.Library;
+using MyDigitalLibrary.Domain.Reading;
 
 namespace MyDigitalLibrary.Application.Abstractions;
 
@@ -18,6 +19,11 @@ public interface IApplicationDbContext
     DbSet<LibraryItem> LibraryItems { get; }
     DbSet<WishlistEntry> WishlistEntries { get; }
     DbSet<Shelf> Shelves { get; }
+    DbSet<Note> Notes { get; }
+    DbSet<Quote> Quotes { get; }
+    DbSet<WorkRating> WorkRatings { get; }
+    DbSet<Review> Reviews { get; }
+    DbSet<ReadingSession> ReadingSessions { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
