@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MyDigitalLibrary.Api/MyDigitalLibrary.Api.csproj" />
+    <Project Path="src/MyDigitalLibrary.Application/MyDigitalLibrary.Application.csproj" />
+    <Project Path="src/MyDigitalLibrary.Domain/MyDigitalLibrary.Domain.csproj" />
+    <Project Path="src/MyDigitalLibrary.Infrastructure/MyDigitalLibrary.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MyDigitalLibrary.Api.IntegrationTests/MyDigitalLibrary.Api.IntegrationTests.csproj" />
+    <Project Path="tests/MyDigitalLibrary.Application.Tests/MyDigitalLibrary.Application.Tests.csproj" />
+    <Project Path="tests/MyDigitalLibrary.Domain.Tests/MyDigitalLibrary.Domain.Tests.csproj" />
+  </Folder>
+</Solution>
