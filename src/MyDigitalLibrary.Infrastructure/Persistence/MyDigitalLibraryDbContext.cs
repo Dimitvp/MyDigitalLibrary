@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MyDigitalLibrary.Application.Abstractions;
 using MyDigitalLibrary.Domain.Catalog;
 using MyDigitalLibrary.Domain.Library;
 using MyDigitalLibrary.Domain.Reading;
@@ -6,7 +7,7 @@ using MyDigitalLibrary.Domain.Reading;
 namespace MyDigitalLibrary.Infrastructure.Persistence;
 
 public sealed class MyDigitalLibraryDbContext(DbContextOptions<MyDigitalLibraryDbContext> options)
-    : DbContext(options)
+    : DbContext(options), IApplicationDbContext
 {
     // Shared catalog (no UserId) — plan section 3.7.
     public DbSet<Work> Works => Set<Work>();
