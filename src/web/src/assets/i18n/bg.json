@@ -5,6 +5,7 @@
   "nav": {
     "library": "Библиотека",
     "wishlist": "Искам я",
+    "import": "Добави чрез импорт",
     "logout": "Изход"
   },
   "auth": {
@@ -68,6 +69,21 @@
       "Downloaded": "Изтеглена"
     }
   },
+  "import": {
+    "title": "Добави чрез импорт",
+    "search": {
+      "label": "Линк или ISBN",
+      "placeholder": "https://... или 9780441013593",
+      "submit": "Търси",
+      "searching": "Търсене...",
+      "notFound": "Нищо не беше намерено за това. Провери линка/ISBN или добави книгата ръчно."
+    },
+    "review": {
+      "foundVia": "Намерено чрез",
+      "description": "Описание",
+      "startOver": "Търси отново"
+    }
+  },
   "common": {
     "loading": "Зареждане...",
     "save": "Запази",
@@ -80,6 +96,12 @@
     },
     "isbn": {
       "invalid": "Невалиден ISBN."
+    },
+    "import": {
+      "invalid_request": "Подай линк или ISBN, но не и двете.",
+      "invalid_url": "Това не е валиден линк.",
+      "isbn_not_found": "Не беше открит ISBN на тази страница.",
+      "metadata_not_found": "Нищо не беше намерено за този ISBN."
     },
     "edition": {
       "duplicate": "Вече има издание с този ISBN.",

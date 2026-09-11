@@ -58,6 +58,7 @@ export interface NestedEditionInput {
   coverType: CoverType | null;
   narrator: string | null;
   durationMinutes: number | null;
+  coverUrl: string | null;
 }
 
 export interface CreateLibraryItemRequest {
@@ -115,6 +116,33 @@ export interface WishlistEntry {
   isFulfilled: boolean;
   workTitle: string;
   authorNames: readonly string[];
+}
+
+export interface BookMetadataCandidate {
+  providerKey: string;
+  title: string | null;
+  originalTitle: string | null;
+  authorNames: readonly string[];
+  publisher: string | null;
+  publicationYear: number | null;
+  language: string | null;
+  pageCount: number | null;
+  description: string | null;
+  coverUrl: string | null;
+  seriesName: string | null;
+  seriesPosition: number | null;
+  genres: readonly string[];
+}
+
+export interface ImportLookupRequest {
+  url: string | null;
+  isbn: string | null;
+}
+
+export interface ImportLookupResult {
+  isbn13: string;
+  candidate: BookMetadataCandidate;
+  alternates: readonly BookMetadataCandidate[];
 }
 
 export interface PagedResult<T> {

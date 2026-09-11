@@ -1,0 +1,117 @@
+<div class="import-page">
+  <h1>{{ 'import.title' | transloco }}</h1>
+
+  @if (!result()) {
+    <form class="search-form" [formGroup]="searchForm" (ngSubmit)="search()">
+      <label>
+        <span>{{ 'import.search.label' | transloco }}</span>
+        <input type="text" formControlName="query" [placeholder]="'import.search.placeholder' | transloco" required />
+      </label>
+
+      @if (searchError()) {
+        <p class="error">{{ searchError() | transloco }}</p>
+      }
+
+      <div class="actions">
+        <button type="submit" [disabled]="searchForm.invalid || searching()">
+          {{ (searching() ? 'import.search.searching' : 'import.search.submit') | transloco }}
+        </button>
+      </div>
+    </form>
+  } @else {
+    <div class="review">
+      @if (result()!.candidate.coverUrl) {
+        <img class="cover-preview" [src]="result()!.candidate.coverUrl" alt="" />
+      }
+
+      <p class="provider-note">
+        {{ 'import.review.foundVia' | transloco }} {{ result()!.candidate.providerKey }} — ISBN {{ result()!.isbn13 }}
+      </p>
+
+      <form [formGroup]="reviewForm" (ngSubmit)="confirm()">
+        <label>
+          <span>{{ 'library.form.workTitle' | transloco }}</span>
+          <input type="text" formControlName="workTitle" required />
+        </label>
+
+        <label>
+          <span>{{ 'library.form.authorNames' | transloco }}</span>
+          <input type="text" formControlName="authorNames" />
+        </label>
+
+        <label>
+          <span>{{ 'import.review.description' | transloco }}</span>
+          <textarea formControlName="description" rows="3"></textarea>
+        </label>
+
+        <label>
+          <span>{{ 'library.form.format' | transloco }}</span>
+          <select formControlName="format">
+            @for (format of formats; track format) {
+              <option [value]="format">{{ 'library.format.' + format | transloco }}</option>
+            }
+          </select>
+        </label>
+
+        <fieldset>
+          <legend>{{ 'library.form.publisher' | transloco }}</legend>
+
+          <label>
+            <span>{{ 'library.form.publisher' | transloco }}</span>
+            <input type="text" formControlName="publisher" />
+          </label>
+
+          <label>
+            <span>{{ 'library.form.publicationYear' | transloco }}</span>
+            <input type="number" formControlName="publicationYear" />
+          </label>
+
+          <label>
+            <span>{{ 'library.form.pageCount' | transloco }}</span>
+            <input type="number" formControlName="pageCount" />
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>{{ 'library.form.acquiredOn' | transloco }}</legend>
+
+          <label>
+            <span>{{ 'library.form.acquiredOn' | transloco }}</span>
+            <input type="date" formControlName="acquiredOn" required />
+          </label>
+
+          <label>
+            <span>{{ 'library.form.acquisitionMethod' | transloco }}</span>
+            <select formControlName="acquisitionMethod">
+              @for (method of acquisitionMethods; track method) {
+                <option [value]="method">{{ 'library.acquisitionMethod.' + method | transloco }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>{{ 'library.form.price' | transloco }}</span>
+            <input type="number" step="0.01" formControlName="priceAmount" />
+          </label>
+
+          <label>
+            <span>{{ 'library.form.currency' | transloco }}</span>
+            <input type="text" formControlName="currencyCode" maxlength="3" />
+          </label>
+
+          <label>
+            <span>{{ 'library.form.source' | transloco }}</span>
+            <input type="text" formControlName="source" />
+          </label>
+        </fieldset>
+
+        <div class="actions">
+          <button type="button" class="secondary" (click)="startOver()">{{ 'import.review.startOver' | transloco }}</button>
+          <button type="submit" [disabled]="reviewForm.invalid || submitting()">
+            {{ 'library.form.save' | transloco }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+</div>

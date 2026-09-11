@@ -1,0 +1,97 @@
+.import-page {
+  max-width: 32rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+
+  h1 {
+    font-size: 1.5rem;
+    margin: 0 0 1rem;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.9rem;
+  }
+
+  input,
+  select,
+  textarea {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    border: 1px solid #555;
+    background: transparent;
+    color: inherit;
+    font-size: 1rem;
+    font-family: inherit;
+  }
+
+  fieldset {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid #333;
+    padding: 1rem;
+
+    legend {
+      font-size: 0.85rem;
+      opacity: 0.7;
+      padding: 0 0.5rem;
+    }
+  }
+
+  .error {
+    color: #f88;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+
+  button {
+    padding: 0.625rem 1.5rem;
+    border-radius: 0.375rem;
+    border: none;
+    background: #3b6ecc;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+
+    &.secondary {
+      background: transparent;
+      border: 1px solid #555;
+      color: inherit;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .cover-preview {
+    max-width: 8rem;
+    max-height: 12rem;
+    border-radius: 0.375rem;
+    display: block;
+    margin: 0 0 1rem;
+  }
+
+  .provider-note {
+    font-size: 0.8rem;
+    opacity: 0.6;
+    margin: 0 0 1rem;
+  }
+}

@@ -5,6 +5,7 @@
   "nav": {
     "library": "Library",
     "wishlist": "Wishlist",
+    "import": "Add via import",
     "logout": "Log out"
   },
   "auth": {
@@ -68,6 +69,21 @@
       "Downloaded": "Downloaded"
     }
   },
+  "import": {
+    "title": "Add via import",
+    "search": {
+      "label": "Link or ISBN",
+      "placeholder": "https://... or 9780441013593",
+      "submit": "Search",
+      "searching": "Searching...",
+      "notFound": "Nothing was found for that. Check the link/ISBN or add the book manually."
+    },
+    "review": {
+      "foundVia": "Found via",
+      "description": "Description",
+      "startOver": "Search again"
+    }
+  },
   "common": {
     "loading": "Loading...",
     "save": "Save",
@@ -80,6 +96,12 @@
     },
     "isbn": {
       "invalid": "Invalid ISBN."
+    },
+    "import": {
+      "invalid_request": "Provide a link or an ISBN, but not both.",
+      "invalid_url": "That isn't a valid link.",
+      "isbn_not_found": "No ISBN could be found on that page.",
+      "metadata_not_found": "Nothing was found for that ISBN."
     },
     "edition": {
       "duplicate": "An edition with this ISBN already exists.",
