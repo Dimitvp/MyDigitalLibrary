@@ -7,15 +7,13 @@ using MyDigitalLibrary.Domain.ValueObjects;
 namespace MyDigitalLibrary.Infrastructure.Persistence.Seed;
 
 /// <summary>
-/// Minimal Development-only seed data: 2 works, 3 editions, 2 library items.
-/// There is no real auth yet (Stage 4), so every seeded item belongs to a
-/// fixed placeholder user id.
+/// Minimal Development-only seed data: 2 works, 3 editions, 2 library items,
+/// all owned by <paramref name="userId"/> — the seeded admin user created by
+/// <see cref="IdentitySeeder"/> (Stage 4 onward; nothing here creates users).
 /// </summary>
 public static class DevelopmentSeeder
 {
-    public static readonly Guid DevUserId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-
-    public static async Task SeedAsync(MyDigitalLibraryDbContext db, CancellationToken ct = default)
+    public static async Task SeedAsync(MyDigitalLibraryDbContext db, Guid userId, CancellationToken ct = default)
     {
         if (await db.Works.AnyAsync(ct))
             return;
@@ -40,13 +38,13 @@ public static class DevelopmentSeeder
         foundationPaperback.SetCoverType(CoverType.Paperback);
 
         var duneLibraryItem = new LibraryItem(
-            DevUserId,
+            userId,
             dunePaperback.Id,
             BookFormat.Physical,
             new Acquisition(new DateOnly(2020, 1, 15), AcquisitionMethod.Bought, new Money(14.99m, "USD"), "Local bookstore"));
 
         var foundationLibraryItem = new LibraryItem(
-            DevUserId,
+            userId,
             foundationPaperback.Id,
             BookFormat.Physical,
             new Acquisition(new DateOnly(2021, 6, 3), AcquisitionMethod.Bought, new Money(9.99m, "USD"), "Local bookstore"));
