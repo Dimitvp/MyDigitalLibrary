@@ -1,16 +1,20 @@
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using MyDigitalLibrary.Api;
 using MyDigitalLibrary.Api.Auth;
 using MyDigitalLibrary.Api.Endpoints;
 using MyDigitalLibrary.Application.Abstractions;
 using MyDigitalLibrary.Application.Catalog;
 using MyDigitalLibrary.Application.Editions;
+using MyDigitalLibrary.Application.Import;
 using MyDigitalLibrary.Application.LibraryItems;
 using MyDigitalLibrary.Application.Wishlist;
 using MyDigitalLibrary.Application.Works;
 using MyDigitalLibrary.Infrastructure.Auth;
+using MyDigitalLibrary.Infrastructure.Import;
+using MyDigitalLibrary.Infrastructure.Import.Covers;
 using MyDigitalLibrary.Infrastructure.Persistence;
 using MyDigitalLibrary.Infrastructure.Persistence.Seed;
 
@@ -75,6 +79,49 @@ builder.Services.AddScoped<EditionService>();
 builder.Services.AddScoped<LibraryItemService>();
 builder.Services.AddScoped<WishlistService>();
 
+// Plan section 5 — import by link/ISBN. Priority order = registration order
+// (Open Library before Google Books, per plan section 5.3/5.4).
+builder.Services.Configure<GoogleBooksOptions>(builder.Configuration.GetSection("GoogleBooks"));
+builder.Services.Configure<CoverStorageOptions>(builder.Configuration.GetSection("Covers"));
+
+// AddHttpClient<T> registers T itself via its own typed-client factory (so its
+// HttpClient constructor parameter resolves correctly) — IBookLinkResolver/
+// IBookMetadataProvider are then registered as factories that resolve *that*
+// instance, not as a second, independently-constructed one (which would fail:
+// HttpClient has no plain DI registration outside the typed-client system).
+builder.Services.AddHttpClient<GenericIsbnPageResolver>(http =>
+{
+    http.Timeout = TimeSpan.FromSeconds(10);
+    http.DefaultRequestHeaders.UserAgent.ParseAdd("MyDigitalLibrary/1.0 (personal book catalog; contact via GitHub repo)");
+}).AddStandardResilienceHandler();
+builder.Services.AddScoped<IBookLinkResolver>(sp => sp.GetRequiredService<GenericIsbnPageResolver>());
+builder.Services.AddScoped<CompositeBookLinkResolver>();
+
+builder.Services.AddHttpClient<OpenLibraryProvider>(http =>
+{
+    http.BaseAddress = new Uri("https://openlibrary.org");
+    http.Timeout = TimeSpan.FromSeconds(10);
+    // Plan section 5.3: Open Library asks for a descriptive User-Agent with contact info.
+    http.DefaultRequestHeaders.UserAgent.ParseAdd("MyDigitalLibrary/1.0 (personal book catalog; contact via GitHub repo)");
+}).AddStandardResilienceHandler();
+builder.Services.AddScoped<IBookMetadataProvider>(sp => sp.GetRequiredService<OpenLibraryProvider>());
+
+builder.Services.AddHttpClient<GoogleBooksProvider>(http =>
+{
+    http.BaseAddress = new Uri("https://www.googleapis.com");
+    http.Timeout = TimeSpan.FromSeconds(10);
+}).AddStandardResilienceHandler();
+builder.Services.AddScoped<IBookMetadataProvider>(sp => sp.GetRequiredService<GoogleBooksProvider>());
+
+builder.Services.AddScoped<CompositeBookMetadataProvider>();
+builder.Services.AddScoped<ImportLookupService>();
+
+builder.Services.AddHttpClient("covers", http => http.Timeout = TimeSpan.FromSeconds(15));
+builder.Services.AddSingleton<CoverDownloadQueue>();
+builder.Services.AddSingleton<ICoverDownloadQueue>(sp => sp.GetRequiredService<CoverDownloadQueue>());
+builder.Services.AddScoped<ICoverStorage, LocalFileCoverStorage>();
+builder.Services.AddHostedService<CoverDownloadBackgroundService>();
+
 builder.Services.AddExceptionHandler<ApplicationExceptionHandler>();
 builder.Services.AddProblemDetails();
 
@@ -114,6 +161,17 @@ app.MapWorkEndpoints();
 app.MapEditionEndpoints();
 app.MapLibraryItemEndpoints();
 app.MapWishlistEndpoints();
+app.MapImportEndpoints();
+
+// Plan section 5.6: covers live on disk (a Docker volume in production), never
+// in the database — served as plain static files under /covers.
+var coversPath = app.Configuration["Covers:RootDirectory"] ?? "covers";
+Directory.CreateDirectory(coversPath);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.GetFullPath(coversPath)),
+    RequestPath = "/covers",
+});
 
 app.Run();
 
