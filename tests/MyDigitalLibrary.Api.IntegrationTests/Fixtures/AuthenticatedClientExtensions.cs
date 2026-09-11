@@ -51,6 +51,21 @@ internal static class AuthenticatedClientExtensions
     public static Task<HttpResponseMessage> SendPatchAsync(this HttpClient client, string url, object? body = null)
         => client.SendWithAntiforgeryAsync(HttpMethod.Patch, url, body);
 
+    public static async Task<HttpResponseMessage> PostFileAsync(this HttpClient client, string url, string fileName, string content)
+    {
+        var token = await client.GetAntiforgeryTokenAsync();
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, url);
+        using var form = new MultipartFormDataContent();
+        var fileContent = new ByteArrayContent(System.Text.Encoding.UTF8.GetBytes(content));
+        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/csv");
+        form.Add(fileContent, "file", fileName);
+        request.Content = form;
+        request.Headers.Add("X-XSRF-TOKEN", token);
+
+        return await client.SendAsync(request);
+    }
+
     private static async Task<HttpResponseMessage> SendWithAntiforgeryAsync(this HttpClient client, HttpMethod method, string url, object? body)
     {
         var token = await client.GetAntiforgeryTokenAsync();

@@ -12,6 +12,7 @@ using MyDigitalLibrary.Application.Duplicates;
 using MyDigitalLibrary.Application.Editions;
 using MyDigitalLibrary.Application.Export;
 using MyDigitalLibrary.Application.Import;
+using MyDigitalLibrary.Application.Import.Csv;
 using MyDigitalLibrary.Application.LibraryItems;
 using MyDigitalLibrary.Application.Loans;
 using MyDigitalLibrary.Application.Notes;
@@ -99,6 +100,7 @@ builder.Services.AddScoped<ReadingGoalService>();
 builder.Services.AddScoped<ExportService>();
 builder.Services.AddScoped<StatisticsService>();
 builder.Services.AddScoped<DuplicateDetectionService>();
+builder.Services.AddScoped<CsvImportService>();
 
 // Plan section 5 — import by link/ISBN. Priority order = registration order
 // (Open Library before Google Books, per plan section 5.3/5.4).
@@ -217,6 +219,7 @@ app.MapReadingGoalEndpoints();
 app.MapExportEndpoints();
 app.MapStatisticsEndpoints();
 app.MapDuplicateEndpoints();
+app.MapCsvImportEndpoints();
 
 // Plan section 5.6: covers live on disk (a Docker volume in production), never
 // in the database — served as plain static files under /covers.
