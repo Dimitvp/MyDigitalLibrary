@@ -541,9 +541,17 @@ public sealed class AvailabilityRefreshService : BackgroundService
 - Никакъв lazy loading. Изключи го изрично.
 - Миграциите се комитват. Всяка миграция се преглежда преди commit —
   генерираният SQL трябва да е разбираем.
-- `ProgressPoint` мапване: owned type с дискриминатор
-  `progress_kind` + `page_value` / `percent_value` / `position_ticks`
-  (nullable само на ниво база, домейнът остава чист).
+- `ProgressPoint` мапване: **не** owned type с дискриминатор — EF Core няма
+  `HasDiscriminator` за owned/`OwnedNavigationBuilder` типове (проверено срещу
+  реалния API повърхността на пакета в Етап 2). `ProgressEntry` е обикновен
+  entity в собствена таблица `reading_progress` (не owned от `ReadingSession`).
+  `ProgressPoint` се сплесква от домейна в четири private полета на
+  `ProgressEntry`: `_kind` (string), `_pageValue` (int?), `_percentValue`
+  (decimal?), `_positionTicks` (long?) — мапвани directly по име от
+  Infrastructure с `b.Property<T>("_fieldName")` (EF чете/пише private полета
+  през reflection, без нужда от `InternalsVisibleTo`). CHECK constraint на ниво
+  база гарантира, че точно колоната, отговаряща на `kind`, е non-null.
+  `Point` е computed проекция върху четирите полета, не собствена колона.
 - Soft delete: **не в v1.** Ако решиш да я има по-късно — глобален query filter.
 
 ---
