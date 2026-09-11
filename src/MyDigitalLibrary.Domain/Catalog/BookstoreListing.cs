@@ -36,8 +36,13 @@ public sealed class BookstoreListing : Entity
         LastCheckedAt = checkedAt;
         ConsecutiveFailures = 0;
 
+        // A fresh Money instance, not the same reference as Price above: EF
+        // Core's owned-type tracking expects each owned instance to belong to
+        // exactly one owner (BookstoreListing.Price vs. PriceHistoryEntry.Price
+        // are two separate owned slots) — sharing one CLR instance between them
+        // trips "the same entity is being tracked as different entity types".
         if (price is not null)
-            _priceHistory.Add(new PriceHistoryEntry(Id, price, checkedAt));
+            _priceHistory.Add(new PriceHistoryEntry(Id, new Money(price.Amount, price.CurrencyCode), checkedAt));
     }
 
     // Never touches Availability: a scrape failure must not be mistaken for "out of stock".
