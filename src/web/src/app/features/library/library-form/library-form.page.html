@@ -1,0 +1,87 @@
+<div class="library-form">
+  <h1>{{ 'library.form.addTitle' | transloco }}</h1>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <label>
+      <span>{{ 'library.form.workTitle' | transloco }}</span>
+      <input type="text" formControlName="workTitle" required />
+    </label>
+
+    <label>
+      <span>{{ 'library.form.authorNames' | transloco }}</span>
+      <input type="text" formControlName="authorNames" />
+    </label>
+
+    <label>
+      <span>{{ 'library.form.format' | transloco }}</span>
+      <select formControlName="format">
+        @for (format of formats; track format) {
+          <option [value]="format">{{ 'library.format.' + format | transloco }}</option>
+        }
+      </select>
+    </label>
+
+    <fieldset>
+      <legend>{{ 'library.form.isbn' | transloco }} / {{ 'library.form.publisher' | transloco }}</legend>
+
+      <label>
+        <span>{{ 'library.form.isbn' | transloco }}</span>
+        <input type="text" formControlName="isbn13" />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.publisher' | transloco }}</span>
+        <input type="text" formControlName="publisher" />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.publicationYear' | transloco }}</span>
+        <input type="number" formControlName="publicationYear" />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.pageCount' | transloco }}</span>
+        <input type="number" formControlName="pageCount" />
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>{{ 'library.form.acquiredOn' | transloco }}</legend>
+
+      <label>
+        <span>{{ 'library.form.acquiredOn' | transloco }}</span>
+        <input type="date" formControlName="acquiredOn" required />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.acquisitionMethod' | transloco }}</span>
+        <select formControlName="acquisitionMethod">
+          @for (method of acquisitionMethods; track method) {
+            <option [value]="method">{{ 'library.acquisitionMethod.' + method | transloco }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        <span>{{ 'library.form.price' | transloco }}</span>
+        <input type="number" step="0.01" formControlName="priceAmount" />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.currency' | transloco }}</span>
+        <input type="text" formControlName="currencyCode" maxlength="3" />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.source' | transloco }}</span>
+        <input type="text" formControlName="source" />
+      </label>
+    </fieldset>
+
+    <div class="actions">
+      <button type="submit" [disabled]="form.invalid || submitting()">
+        {{ 'library.form.save' | transloco }}
+      </button>
+    </div>
+  </form>
+</div>

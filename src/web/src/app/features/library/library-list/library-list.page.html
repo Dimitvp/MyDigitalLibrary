@@ -1,0 +1,31 @@
+<div class="library-list">
+  <header>
+    <h1>{{ 'library.list.title' | transloco }}</h1>
+    <a routerLink="/library/add" class="add-button">{{ 'library.list.add' | transloco }}</a>
+  </header>
+
+  <input
+    type="search"
+    #searchInput
+    [placeholder]="'library.list.search' | transloco"
+    (input)="onSearchInput(searchInput.value)"
+  />
+
+  @if (listResource.isLoading()) {
+    <p>{{ 'common.loading' | transloco }}</p>
+  } @else if (listResource.value().items.length === 0) {
+    <p class="empty">{{ 'library.list.empty' | transloco }}</p>
+  } @else {
+    <ul class="items">
+      @for (item of listResource.value().items; track item.id) {
+        <li>
+          <a [routerLink]="['/library', item.id]">
+            <span class="title">{{ item.workTitle }}</span>
+            <span class="authors">{{ item.authorNames.join(', ') }}</span>
+            <span class="format">{{ 'library.format.' + item.format | transloco }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</div>

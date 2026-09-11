@@ -1,0 +1,45 @@
+@if (itemResource.isLoading()) {
+  <p class="status">{{ 'common.loading' | transloco }}</p>
+} @else if (itemResource.value(); as item) {
+  <div class="detail">
+    <a routerLink="/library">← {{ 'library.detail.back' | transloco }}</a>
+
+    <h1>{{ item.workTitle }}</h1>
+    @if (item.authorNames.length > 0) {
+      <p class="authors">{{ item.authorNames.join(', ') }}</p>
+    }
+
+    <dl>
+      <dt>{{ 'library.form.format' | transloco }}</dt>
+      <dd>{{ 'library.format.' + item.format | transloco }}</dd>
+
+      <dt>{{ 'library.form.status' | transloco }}</dt>
+      <dd>{{ 'library.status.' + item.status | transloco }}</dd>
+
+      <dt>{{ 'library.form.acquiredOn' | transloco }}</dt>
+      <dd>{{ item.acquisition.acquiredOn }}</dd>
+
+      <dt>{{ 'library.form.acquisitionMethod' | transloco }}</dt>
+      <dd>{{ 'library.acquisitionMethod.' + item.acquisition.method | transloco }}</dd>
+
+      @if (item.acquisition.price; as price) {
+        <dt>{{ 'library.form.price' | transloco }}</dt>
+        <dd>{{ price.amount }} {{ price.currencyCode }}</dd>
+      }
+
+      @if (item.acquisition.source) {
+        <dt>{{ 'library.form.source' | transloco }}</dt>
+        <dd>{{ item.acquisition.source }}</dd>
+      }
+
+      @if (item.personalNote) {
+        <dt>{{ 'library.detail.note' | transloco }}</dt>
+        <dd>{{ item.personalNote }}</dd>
+      }
+    </dl>
+
+    <button type="button" class="delete" (click)="delete()" [disabled]="deleting()">
+      {{ 'library.detail.delete' | transloco }}
+    </button>
+  </div>
+}

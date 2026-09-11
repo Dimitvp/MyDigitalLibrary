@@ -1,0 +1,60 @@
+.status {
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.detail {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+
+  a {
+    color: inherit;
+    opacity: 0.75;
+    text-decoration: none;
+    font-size: 0.9rem;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  h1 {
+    margin: 0.75rem 0 0.25rem;
+  }
+
+  .authors {
+    opacity: 0.7;
+    margin: 0 0 1.5rem;
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.5rem 1rem;
+    margin: 0 0 1.5rem;
+  }
+
+  dt {
+    opacity: 0.6;
+    font-size: 0.85rem;
+  }
+
+  dd {
+    margin: 0;
+  }
+
+  .delete {
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    border: 1px solid #a33;
+    background: transparent;
+    color: #f88;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
