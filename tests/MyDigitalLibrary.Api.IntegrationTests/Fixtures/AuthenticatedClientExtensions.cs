@@ -48,6 +48,9 @@ internal static class AuthenticatedClientExtensions
     public static Task<HttpResponseMessage> DeleteWithAntiforgeryAsync(this HttpClient client, string url)
         => client.SendWithAntiforgeryAsync(HttpMethod.Delete, url, null);
 
+    public static Task<HttpResponseMessage> SendPatchAsync(this HttpClient client, string url, object? body = null)
+        => client.SendWithAntiforgeryAsync(HttpMethod.Patch, url, body);
+
     private static async Task<HttpResponseMessage> SendWithAntiforgeryAsync(this HttpClient client, HttpMethod method, string url, object? body)
     {
         var token = await client.GetAntiforgeryTokenAsync();
