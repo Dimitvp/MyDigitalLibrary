@@ -814,7 +814,6 @@ namespace MyDigitalLibrary.Infrastructure.Migrations
             modelBuilder.Entity("MyDigitalLibrary.Domain.Reading.ProgressEntry", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -1043,7 +1042,6 @@ namespace MyDigitalLibrary.Infrastructure.Migrations
                     b.OwnsMany("MyDigitalLibrary.Domain.Catalog.PriceHistoryEntry", "PriceHistory", b1 =>
                         {
                             b1.Property<Guid>("Id")
-                                .ValueGeneratedOnAdd()
                                 .HasColumnType("uuid")
                                 .HasColumnName("id");
 
@@ -1115,7 +1113,6 @@ namespace MyDigitalLibrary.Infrastructure.Migrations
                     b.OwnsMany("MyDigitalLibrary.Domain.Catalog.WorkAuthor", "Authors", b1 =>
                         {
                             b1.Property<Guid>("Id")
-                                .ValueGeneratedOnAdd()
                                 .HasColumnType("uuid")
                                 .HasColumnName("id");
 
@@ -1281,7 +1278,6 @@ namespace MyDigitalLibrary.Infrastructure.Migrations
                     b.OwnsMany("MyDigitalLibrary.Domain.Library.ShelfItem", "Items", b1 =>
                         {
                             b1.Property<Guid>("Id")
-                                .ValueGeneratedOnAdd()
                                 .HasColumnType("uuid")
                                 .HasColumnName("id");
 

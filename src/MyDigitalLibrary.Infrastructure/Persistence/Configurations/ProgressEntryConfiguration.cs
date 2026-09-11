@@ -25,6 +25,13 @@ public sealed class ProgressEntryConfiguration : IEntityTypeConfiguration<Progre
             """));
 
         builder.HasKey(e => e.Id);
+        // Id is always assigned client-side (Entity's base constructor), never by
+        // the database. Without this, EF Core's default "value generated on add"
+        // convention for Guid keys makes it guess Added vs. Unchanged for an
+        // entity discovered via navigation fixup (RecordProgress appending to an
+        // already-tracked, already-loaded ReadingSession.Progress) — and it
+        // guesses wrong, emitting an UPDATE for a row that was never inserted.
+        builder.Property(e => e.Id).ValueGeneratedNever();
 
         builder.Property(e => e.ReadingSessionId).IsRequired();
         builder.Property(e => e.RecordedAt).IsRequired();

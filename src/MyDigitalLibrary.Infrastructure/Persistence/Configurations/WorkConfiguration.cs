@@ -42,6 +42,12 @@ public sealed class WorkConfiguration : IEntityTypeConfiguration<Work>
             author.ToTable("work_authors");
             author.WithOwner().HasForeignKey(x => x.WorkId);
             author.HasKey(x => x.Id);
+            // Id is always assigned client-side (Entity's base constructor), never
+            // by the database — see ProgressEntryConfiguration for why this matters:
+            // without it, EF Core misjudges Added vs. Unchanged for a WorkAuthor
+            // discovered via navigation fixup (AddAuthor appending to an
+            // already-tracked, already-persisted Work) and emits a no-op UPDATE.
+            author.Property(x => x.Id).ValueGeneratedNever();
             author.Property(x => x.AuthorId).IsRequired();
             author.Property(x => x.Role).IsRequired();
             author.HasIndex(x => x.AuthorId);

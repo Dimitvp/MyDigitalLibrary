@@ -31,6 +31,13 @@ public sealed class BookstoreListingConfiguration : IEntityTypeConfiguration<Boo
             history.ToTable("bookstore_listing_price_history");
             history.WithOwner().HasForeignKey(x => x.ListingId);
             history.HasKey(x => x.Id);
+            // Id is always assigned client-side (Entity's base constructor), never
+            // by the database — see ProgressEntryConfiguration for why this matters:
+            // without it, EF Core misjudges Added vs. Unchanged for a
+            // PriceHistoryEntry discovered via navigation fixup (appending to an
+            // already-tracked, already-persisted BookstoreListing — the Stage 8
+            // availability refresh's normal case) and emits a no-op UPDATE.
+            history.Property(x => x.Id).ValueGeneratedNever();
             history.Property(x => x.ObservedAt).IsRequired();
 
             history.OwnsOne(x => x.Price, price =>

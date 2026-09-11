@@ -19,6 +19,12 @@ public sealed class ShelfConfiguration : IEntityTypeConfiguration<Shelf>
             item.ToTable("shelf_items");
             item.WithOwner().HasForeignKey(x => x.ShelfId);
             item.HasKey(x => x.Id);
+            // Id is always assigned client-side (Entity's base constructor), never
+            // by the database — see ProgressEntryConfiguration for why this matters:
+            // without it, EF Core misjudges Added vs. Unchanged for a ShelfItem
+            // discovered via navigation fixup (AddItem appending to an
+            // already-tracked, already-loaded Shelf.Items) and emits a no-op UPDATE.
+            item.Property(x => x.Id).ValueGeneratedNever();
             item.Property(x => x.LibraryItemId).IsRequired();
             item.Property(x => x.AddedOn).IsRequired();
             item.Property(x => x.SortOrder).IsRequired();
