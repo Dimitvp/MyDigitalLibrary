@@ -31,7 +31,7 @@ public sealed class ProgressEntryConfiguration : IEntityTypeConfiguration<Progre
 
         builder.Property<string>("_kind").HasColumnName("kind").HasMaxLength(20).IsRequired();
         builder.Property<int?>("_pageValue").HasColumnName("page_value");
-        builder.Property<decimal?>("_percentValue").HasColumnName("percent_value");
+        builder.Property<decimal?>("_percentValue").HasColumnName("percent_value").HasPrecision(5, 2);
         builder.Property<long?>("_positionTicks").HasColumnName("position_ticks");
 
         // Computed purely from the four fields above — not its own column.
