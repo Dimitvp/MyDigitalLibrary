@@ -22,9 +22,14 @@ services:
       ConnectionStrings__MyDigitalLibrary: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+      GoogleBooks__ApiKey: ${GOOGLE_BOOKS_API_KEY}
+      Covers__RootDirectory: /app/covers
+    volumes:
+      - covers:/app/covers
     depends_on:
       db:
         condition: service_healthy
 
 volumes:
   pgdata:
+  covers:
