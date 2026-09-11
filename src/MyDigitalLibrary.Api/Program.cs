@@ -9,6 +9,7 @@ using MyDigitalLibrary.Application.Abstractions;
 using MyDigitalLibrary.Application.Bookstores;
 using MyDigitalLibrary.Application.Catalog;
 using MyDigitalLibrary.Application.Editions;
+using MyDigitalLibrary.Application.Export;
 using MyDigitalLibrary.Application.Import;
 using MyDigitalLibrary.Application.LibraryItems;
 using MyDigitalLibrary.Application.Loans;
@@ -93,6 +94,7 @@ builder.Services.AddScoped<QuoteService>();
 builder.Services.AddScoped<BookstoreListingService>();
 builder.Services.AddScoped<LoanService>();
 builder.Services.AddScoped<ReadingGoalService>();
+builder.Services.AddScoped<ExportService>();
 
 // Plan section 5 — import by link/ISBN. Priority order = registration order
 // (Open Library before Google Books, per plan section 5.3/5.4).
@@ -208,6 +210,7 @@ app.MapQuoteEndpoints();
 app.MapBookstoreListingEndpoints();
 app.MapLoanEndpoints();
 app.MapReadingGoalEndpoints();
+app.MapExportEndpoints();
 
 // Plan section 5.6: covers live on disk (a Docker volume in production), never
 // in the database — served as plain static files under /covers.
