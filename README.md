@@ -3,9 +3,11 @@
 Личен каталог за книги (хартиени / ebook / аудио) — какво притежавам, какво искам,
 какво чета в момента. Виж пълния план за имплементация в [docs/PLAN.md](docs/PLAN.md).
 
-> **Статус:** Етап 4 — Auth. Домейн (Етап 1), EF Core/Postgres персистентност
-> (Етап 2), REST API (Етап 3) и ASP.NET Core Identity с cookie auth + global
-> query filters (Етап 4) са готови. Фронтендът идва в следващите етапи.
+> **Статус:** Етап 5 — Angular skeleton. Домейн (Етап 1), EF Core/Postgres
+> персистентност (Етап 2), REST API (Етап 3), ASP.NET Core Identity с cookie
+> auth + global query filters (Етап 4) и Angular shell/рутиране/i18n/login/
+> библиотека (Етап 5) са готови. Статистики, графики и тъмна тема идват
+> в по-късен етап.
 
 ## Стек
 
@@ -57,6 +59,12 @@ npm install
 npm start
 ```
 
+`npm start` (`ng serve`) обслужва Angular dev server-а на `http://localhost:4200`
+и прокси-ва `/api`/`/health` към `http://localhost:8081` (виж `proxy.conf.json`)
+— затова API-то (`docker compose up -d` или `dotnet run`) трябва да работи
+паралелно, за да работят вход/списък/детайли/добавяне в браузъра. Вход с
+seed admin-а (`SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` от `.env`).
+
 ### Docker
 
 ```powershell
@@ -91,7 +99,8 @@ GET/POST    /api/v1/wishlist, /api/v1/wishlist/{id}/fulfill
 (`Auth:AllowRegistration = false`) — единственият потребител е seed admin-ът
 от `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` (Development-only, виж `.env.example`).
 
-`web` (Angular, зад nginx) идва в Етап 10.
+Angular dev server-ът (виж Frontend по-горе) вече работи срещу това API.
+Production build зад nginx в самия `docker compose` стек идва в Етап 10.
 
 ## CI
 
