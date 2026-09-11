@@ -3,14 +3,15 @@
 Личен каталог за книги (хартиени / ebook / аудио) — какво притежавам, какво искам,
 какво чета в момента. Виж пълния план за имплементация в [docs/PLAN.md](docs/PLAN.md).
 
-> **Статус:** Етап 7 — Четене. Домейн (Етап 1), EF Core/Postgres
+> **Статус:** Етап 8 — Книжарници и наличност. Домейн (Етап 1), EF Core/Postgres
 > персистентност (Етап 2), REST API (Етап 3), ASP.NET Core Identity с cookie
 > auth + global query filters (Етап 4), Angular shell/рутиране/i18n/login/
 > библиотека (Етап 5), импорт по линк/ISBN през Open Library/Google Books
-> (Етап 6) и четене — читателски сесии/прогрес, рейтинги, ревюта, рафтове,
-> бележки, цитати (Етап 7) са готови (само бекенд, без Angular екрани).
-> Книжарници, CSV импорт, баркод скенер, статистики и цели за четене идват
-> в по-късен етап.
+> (Етап 6), четене — читателски сесии/прогрес, рейтинги, ревюта, рафтове,
+> бележки, цитати (Етап 7) и наличност по книжарници — Helikon и Ciela,
+> с ежедневно фоново обновяване (Етап 8) са готови (само бекенд, без Angular
+> екрани от Етап 6 нататък). CSV импорт, баркод скенер, статистики и цели
+> за четене идват в по-късен етап.
 
 ## Стек
 
@@ -101,6 +102,8 @@ GET/POST    /api/v1/shelves, /api/v1/shelves/{id}, /api/v1/shelves/{id}/items
 GET/POST    /api/v1/library-items/{id}/notes, PUT/DELETE /api/v1/notes/{id}
 GET/POST    /api/v1/works/{id}/quotes, PUT/DELETE /api/v1/quotes/{id}
 POST        /api/v1/import/lookup   # { url } или { isbn } → кандидат за преглед, нищо не се записва
+GET/POST    /api/v1/editions/{id}/listings
+PATCH       /api/v1/editions/{id}/listings/{listingId}/discontinued
 ```
 
 Всички ресурсни endpoints изискват вход (cookie auth); мутиращите заявки
@@ -115,6 +118,14 @@ POST        /api/v1/import/lookup   # { url } или { isbn } → кандида
 заявката). Свалените корици отиват в `Covers:RootDirectory` (Docker: volume,
 виж по-долу) и се сервират през `GET /covers/{файл}` — свалянето е background
 job, не блокира записа на книгата.
+
+Наличността по книжарници (`Bookstores` в `appsettings.json`) проверява
+Helikon и Ciela веднъж дневно (`Bookstores:RefreshInterval`) — и двете имат
+permissive `robots.txt` и публикуват schema.org `Book`/`Offer` JSON-LD.
+Ozone.bg и Orange Center **нямат** адаптери — Ozone блокира бот трафик на
+мрежово ниво, Orange Center забранява продуктовите страници в `robots.txt`
+(виж `docs/PLAN.md` т. 6.1). `Bookstores:Enabled=false` спира всичко;
+ръчно добавен линк към книжарница работи винаги, дори без съвпадащ адаптер.
 
 Angular dev server-ът (виж Frontend по-горе) вече работи срещу това API.
 Production build зад nginx в самия `docker compose` стек идва в Етап 10.
