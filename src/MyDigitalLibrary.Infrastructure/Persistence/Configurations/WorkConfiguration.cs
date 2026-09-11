@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using MyDigitalLibrary.Domain.Catalog;
 using MyDigitalLibrary.Domain.ValueObjects;
 using MyDigitalLibrary.Infrastructure.Persistence.Conversions;
+using NpgsqlTypes;
 
 namespace MyDigitalLibrary.Infrastructure.Persistence.Configurations;
 
@@ -55,5 +56,17 @@ public sealed class WorkConfiguration : IEntityTypeConfiguration<Work>
         builder.Navigation(w => w.Authors).UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder.HasIndex(w => w.SeriesId);
+
+        // Plan section 9: full-text search over Title/OriginalTitle/Description.
+        // "simple" config, not a language-specific stemmer — verified against a
+        // real Postgres 17 instance (2026-09-11) that it has no Bulgarian
+        // dictionary (\dFd lists 29 snowball stemmers, none Bulgarian), matching
+        // the plan's own hedge. A pure Domain-ignorant shadow property (Work.cs
+        // itself has no SearchVector member) so Domain stays free of persistence
+        // concerns; queried via EF.Property<NpgsqlTsVector>(w, "SearchVector").
+        builder.Property<NpgsqlTsVector>("SearchVector")
+            .HasColumnName("search_vector")
+            .IsGeneratedTsVectorColumn("simple", [nameof(Work.Title), nameof(Work.OriginalTitle), nameof(Work.Description)]);
+        builder.HasIndex("SearchVector").HasMethod("GIN");
     }
 }

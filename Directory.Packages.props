@@ -15,6 +15,12 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.12" />
+    <!-- Also referenced directly by Application: the plan commits to PostgreSQL
+         specifically (no DB-abstraction goal), so Application's Search feature
+         uses this package's tsvector LINQ extensions (EF.Functions.ToTsVector /
+         PlainToTsQuery, NpgsqlTsVector.Matches) directly. This is a NuGet
+         package reference, not a project reference to Infrastructure — it does
+         not cross the Clean Architecture project-dependency boundary. -->
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageVersion Include="EFCore.NamingConventions" Version="10.0.1" />
     <PackageVersion Include="AngleSharp" Version="1.8.1" />
