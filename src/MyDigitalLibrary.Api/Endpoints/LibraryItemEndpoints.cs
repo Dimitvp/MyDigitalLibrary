@@ -1,3 +1,4 @@
+using MyDigitalLibrary.Api.Filters;
 using MyDigitalLibrary.Application.Abstractions;
 using MyDigitalLibrary.Application.LibraryItems;
 using MyDigitalLibrary.Domain.Enums;
@@ -8,7 +9,7 @@ public static class LibraryItemEndpoints
 {
     public static void MapLibraryItemEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/v1/library-items").WithTags("LibraryItems");
+        var group = app.MapGroup("/api/v1/library-items").WithTags("LibraryItems").RequireAuthorization();
 
         group.MapGet("/", async (
             BookFormat? format, OwnershipStatus? status, Guid? shelfId, string? q, int? page, int? pageSize,
@@ -19,7 +20,7 @@ public static class LibraryItemEndpoints
         {
             var item = await service.CreateAsync(request, currentUser.UserId, ct);
             return Results.Created($"/api/v1/library-items/{item.Id}", item);
-        });
+        }).AddEndpointFilter<AntiforgeryFilter>();
 
         group.MapGet("/{id:guid}", async (Guid id, LibraryItemService service, ICurrentUser currentUser, CancellationToken ct)
             => Results.Ok(await service.GetAsync(id, currentUser.UserId, ct)));
@@ -28,24 +29,24 @@ public static class LibraryItemEndpoints
         {
             await service.UpdateAsync(id, request, currentUser.UserId, ct);
             return Results.NoContent();
-        });
+        }).AddEndpointFilter<AntiforgeryFilter>();
 
         group.MapDelete("/{id:guid}", async (Guid id, LibraryItemService service, ICurrentUser currentUser, CancellationToken ct) =>
         {
             await service.DeleteAsync(id, currentUser.UserId, ct);
             return Results.NoContent();
-        });
+        }).AddEndpointFilter<AntiforgeryFilter>();
 
         group.MapPatch("/{id:guid}/location", async (Guid id, UpdateLocationRequest request, LibraryItemService service, ICurrentUser currentUser, CancellationToken ct) =>
         {
             await service.UpdateLocationAsync(id, request.Location, currentUser.UserId, ct);
             return Results.NoContent();
-        });
+        }).AddEndpointFilter<AntiforgeryFilter>();
 
         group.MapPatch("/{id:guid}/status", async (Guid id, UpdateStatusRequest request, LibraryItemService service, ICurrentUser currentUser, CancellationToken ct) =>
         {
             await service.UpdateStatusAsync(id, request.Status, currentUser.UserId, ct);
             return Results.NoContent();
-        });
+        }).AddEndpointFilter<AntiforgeryFilter>();
     }
 }
