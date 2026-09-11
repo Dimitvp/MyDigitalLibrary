@@ -2,7 +2,7 @@ using MyDigitalLibrary.Domain.Common;
 
 namespace MyDigitalLibrary.Domain.Library;
 
-public sealed class Shelf : Entity
+public sealed class Shelf : Entity, IUserOwned
 {
     public Guid UserId { get; }
     public string Name { get; private set; }

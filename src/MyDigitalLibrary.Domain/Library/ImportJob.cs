@@ -5,7 +5,7 @@ namespace MyDigitalLibrary.Domain.Library;
 
 public sealed record ImportJobStats(int TotalRows, int SucceededRows, int FailedRows);
 
-public sealed class ImportJob : Entity
+public sealed class ImportJob : Entity, IUserOwned
 {
     public Guid UserId { get; }
     public ImportJobKind Kind { get; }

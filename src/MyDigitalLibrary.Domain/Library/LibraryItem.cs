@@ -10,7 +10,7 @@ namespace MyDigitalLibrary.Domain.Library;
 /// legitimately have several LibraryItems (paperback + ebook + audiobook);
 /// that is not a duplicate.
 /// </summary>
-public sealed class LibraryItem : Entity
+public sealed class LibraryItem : Entity, IUserOwned
 {
     public Guid UserId { get; }
     public Guid EditionId { get; }

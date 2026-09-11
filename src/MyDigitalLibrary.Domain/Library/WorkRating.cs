@@ -4,7 +4,7 @@ namespace MyDigitalLibrary.Domain.Library;
 
 // Rates the Work, not an Edition: you're rating the story, not the paper.
 // One rating per (UserId, WorkId) — enforced by a unique index at persistence.
-public sealed class WorkRating : Entity
+public sealed class WorkRating : Entity, IUserOwned
 {
     public const int MinScore = 1;
     public const int MaxScore = 10;

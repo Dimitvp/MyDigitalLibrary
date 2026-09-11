@@ -10,7 +10,7 @@ namespace MyDigitalLibrary.Domain.Library;
 /// required fields (no acquisition date/price/location) and a one-way
 /// transition (<see cref="Fulfill"/>), not an enum flip.
 /// </summary>
-public sealed class WishlistEntry : Entity
+public sealed class WishlistEntry : Entity, IUserOwned
 {
     public Guid UserId { get; }
     public Guid WorkId { get; }

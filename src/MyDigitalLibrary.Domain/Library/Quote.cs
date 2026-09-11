@@ -4,7 +4,7 @@ namespace MyDigitalLibrary.Domain.Library;
 
 // Belongs to the Work (not an Edition/LibraryItem): the quoted content doesn't
 // change across printings, only its page/position reference does.
-public sealed class Quote : Entity
+public sealed class Quote : Entity, IUserOwned
 {
     public Guid UserId { get; }
     public Guid WorkId { get; }

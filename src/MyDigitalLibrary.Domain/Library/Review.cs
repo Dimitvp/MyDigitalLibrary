@@ -6,7 +6,7 @@ namespace MyDigitalLibrary.Domain.Library;
 // produce a second, disconnected review of the same book. Edition-specific
 // complaints (bad translation, bad narrator) belong on LibraryItem.PersonalNote
 // or Edition.Translator, not here.
-public sealed class Review : Entity
+public sealed class Review : Entity, IUserOwned
 {
     public Guid UserId { get; }
     public Guid WorkId { get; }

@@ -2,7 +2,7 @@ using MyDigitalLibrary.Domain.Common;
 
 namespace MyDigitalLibrary.Domain.Library;
 
-public sealed class ReadingGoal : Entity
+public sealed class ReadingGoal : Entity, IUserOwned
 {
     public Guid UserId { get; }
     public int Year { get; }

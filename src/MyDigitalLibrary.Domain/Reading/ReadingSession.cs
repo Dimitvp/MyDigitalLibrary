@@ -7,7 +7,7 @@ namespace MyDigitalLibrary.Domain.Reading;
 /// One pass through a library item. Rereading creates a new session rather
 /// than reusing this one, so reading history is never overwritten.
 /// </summary>
-public sealed class ReadingSession : Entity
+public sealed class ReadingSession : Entity, IUserOwned
 {
     public Guid UserId { get; }
     public Guid LibraryItemId { get; }
