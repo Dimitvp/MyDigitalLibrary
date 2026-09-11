@@ -3,15 +3,20 @@
 Личен каталог за книги (хартиени / ebook / аудио) — какво притежавам, какво искам,
 какво чета в момента. Виж пълния план за имплементация в [docs/PLAN.md](docs/PLAN.md).
 
-> **Статус:** Етап 8 — Книжарници и наличност. Домейн (Етап 1), EF Core/Postgres
+> **Статус:** Етап 9 — Останалото. Домейн (Етап 1), EF Core/Postgres
 > персистентност (Етап 2), REST API (Етап 3), ASP.NET Core Identity с cookie
 > auth + global query filters (Етап 4), Angular shell/рутиране/i18n/login/
 > библиотека (Етап 5), импорт по линк/ISBN през Open Library/Google Books
 > (Етап 6), четене — читателски сесии/прогрес, рейтинги, ревюта, рафтове,
-> бележки, цитати (Етап 7) и наличност по книжарници — Helikon и Ciela,
-> с ежедневно фоново обновяване (Етап 8) са готови (само бекенд, без Angular
-> екрани от Етап 6 нататък). CSV импорт, баркод скенер, статистики и цели
-> за четене идват в по-късен етап.
+> бележки, цитати (Етап 7), наличност по книжарници — Helikon и Ciela,
+> с ежедневно фоново обновяване (Етап 8) и Етап 9 — заемане на книги,
+> цели за четене, експорт (JSON + CSV), статистики, откриване на дубликати,
+> CSV импорт от Goodreads/Calibre и full-text search (PostgreSQL `tsvector`
+> + GIN, `simple` конфигурация) — са готови (само бекенд, без Angular
+> екрани от Етап 6 нататък). Планът (секции 0-12) е изпълнен изцяло;
+> баркод скенер и nginx production hardening остават извън обхвата
+> (виж `docs/PLAN.md` т. 13; nginx production build е скициран, но не
+> е формален план-етап — виж бележката преди "## CI" по-долу).
 
 ## Стек
 
@@ -104,6 +109,15 @@ GET/POST    /api/v1/works/{id}/quotes, PUT/DELETE /api/v1/quotes/{id}
 POST        /api/v1/import/lookup   # { url } или { isbn } → кандидат за преглед, нищо не се записва
 GET/POST    /api/v1/editions/{id}/listings
 PATCH       /api/v1/editions/{id}/listings/{listingId}/discontinued
+POST        /api/v1/library-items/{id}/loans
+POST        /api/v1/loans/{id}/return
+GET/PUT     /api/v1/reading-goals/{year}
+GET         /api/v1/export?format=json|csv
+GET         /api/v1/statistics?year=
+GET         /api/v1/duplicates
+POST        /api/v1/import/csv   # multipart/form-data, поле "file" — авто-детекция Goodreads/Calibre
+GET         /api/v1/import/jobs/{id}
+GET         /api/v1/search?q=...   # PostgreSQL full-text, "simple" конфигурация; заглавие/оригинално заглавие/описание + автори
 ```
 
 Всички ресурсни endpoints изискват вход (cookie auth); мутиращите заявки
