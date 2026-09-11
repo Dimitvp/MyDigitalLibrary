@@ -25,6 +25,21 @@
 7. **Тестове заедно с кода, не след него.** Домейн логика без тест не е готова.
 8. Ако намериш противоречие между този план и реалността (напр. API-то се е
    променило) — **спри, опиши проблема, предложи вариант**, не импровизирай мълчаливо.
+9. **Този файл (`docs/PLAN.md`) е единственият източник на истина.** Няма други
+   копия. Ако намериш `PLAN.md` в корена на репото или извън него — това е
+   остатък, изтрий го, не го редактирай.
+10. **Корекции в плана се правят в отделен commit, преди кода.** Когато открием,
+    че планът греши (както стана с мапването на `ProgressPoint` в т. 7.1),
+    последователността е: поправи `docs/PLAN.md` → `docs: fix ...` commit →
+    едва тогава пиши кода. Никога не поправяй плана така, че да описва каквото
+    вече си написал — това унищожава смисъла му на независима проверка.
+11. **Обратното също важи: когато вече написан код се окаже правилен, а планът
+    остарял или грешен, коригирай плана, за да описва кода — не пренаписвай
+    работещ код само за да съвпадне с остарял план.** Точно това стана с
+    дискриминатора на `ProgressPoint` (т. 7.1): домейнът вече пазеше `_kind`
+    като `string`, което е по-доброто решение — грешеше по-ранната чернова на
+    плана, не кодът. Поправката пак минава през собствен `docs:` commit (виж
+    правило 10), просто в обратна посока: от код към план.
 
 ---
 
@@ -597,18 +612,88 @@ public sealed class AvailabilityRefreshService : BackgroundService
 - Никакъв lazy loading. Изключи го изрично.
 - Миграциите се комитват. Всяка миграция се преглежда преди commit —
   генерираният SQL трябва да е разбираем.
-- `ProgressPoint` мапване: **не** owned type с дискриминатор — EF Core няма
-  `HasDiscriminator` за owned/`OwnedNavigationBuilder` типове (проверено срещу
-  реалния API повърхността на пакета в Етап 2). `ProgressEntry` е обикновен
-  entity в собствена таблица `reading_progress` (не owned от `ReadingSession`).
-  `ProgressPoint` се сплесква от домейна в четири private полета на
-  `ProgressEntry`: `_kind` (string), `_pageValue` (int?), `_percentValue`
-  (decimal?), `_positionTicks` (long?) — мапвани directly по име от
-  Infrastructure с `b.Property<T>("_fieldName")` (EF чете/пише private полета
-  през reflection, без нужда от `InternalsVisibleTo`). CHECK constraint на ниво
-  база гарантира, че точно колоната, отговаряща на `kind`, е non-null.
-  `Point` е computed проекция върху четирите полета, не собствена колона.
+- `ProgressPoint` мапване: виж т. 7.1.
 - Soft delete: **не в v1.** Ако решиш да я има по-късно — глобален query filter.
+
+### 7.1 Мапване на `ProgressPoint` (полиморфизъм без EF наследяване)
+
+> **Внимание — това е мястото, където по-ранна чернова на този план беше грешна.**
+> EF Core **не поддържа** наследяване (и следователно `HasDiscriminator()`) върху
+> owned types. Не се опитвай да мапнеш `ProgressPoint` като owned type с
+> дискриминатор — тази комбинация не съществува в EF Core (проверено срещу
+> реалната API повърхност на пакета в Етап 2).
+
+**Решение:** полиморфизмът живее **само в домейна**. Персистенцията е плоска, а
+`ProgressEntry` е **нормален ентитет със собствена таблица**, не owned type.
+Дискриминаторът `_kind` е `string` (`"page"` / `"percent"` / `"timestamp"`),
+**не** C# enum, мапван като int — вече написаният домейн код ползваше string и
+се оказа по-доброто решение (виж правило 11); по-ранна чернова на този раздел
+описваше int enum и грешеше.
+
+```csharp
+// Domain/Reading/ProgressEntry.cs — без EF атрибути, без internal членове.
+public sealed class ProgressEntry : Entity
+{
+    private const string PageKind = "page";
+    private const string PercentKind = "percent";
+    private const string TimestampKind = "timestamp";
+
+    private readonly string _kind;
+    private readonly int? _pageValue;
+    private readonly decimal? _percentValue;
+    private readonly long? _positionTicks;
+
+    public ProgressPoint Point => _kind switch      // домейнът вижда само това
+    {
+        PageKind => new PageProgress(_pageValue!.Value),
+        PercentKind => new PercentProgress(_percentValue!.Value),
+        TimestampKind => new TimestampProgress(TimeSpan.FromTicks(_positionTicks!.Value)),
+        _ => throw new InvalidOperationException($"Unknown progress kind '{_kind}'."),
+    };
+
+    internal ProgressEntry(Guid readingSessionId, ProgressPoint point, DateTimeOffset recordedAt)
+    {
+        ReadingSessionId = readingSessionId;
+        RecordedAt = recordedAt;
+
+        (_kind, _pageValue, _percentValue, _positionTicks) = point switch
+        {
+            PageProgress p => (PageKind, (int?)p.Page, (decimal?)null, (long?)null),
+            PercentProgress p => (PercentKind, (int?)null, (decimal?)p.Percent, (long?)null),
+            TimestampProgress p => (TimestampKind, (int?)null, (decimal?)null, (long?)p.Position.Ticks),
+            _ => throw new ArgumentOutOfRangeException(nameof(point), $"Unsupported progress point type '{point.GetType().Name}'."),
+        };
+    }
+
+    private ProgressEntry() { _kind = PageKind; }   // само за EF materialization
+}
+```
+
+```csharp
+// Infrastructure/Persistence/Configurations/ProgressEntryConfiguration.cs
+public void Configure(EntityTypeBuilder<ProgressEntry> b)
+{
+    b.ToTable("reading_progress", t => t.HasCheckConstraint(
+        "ck_reading_progress_single_value",
+        """
+        (kind = 'page' AND page_value IS NOT NULL AND percent_value IS NULL AND position_ticks IS NULL)
+        OR (kind = 'percent' AND percent_value IS NOT NULL AND page_value IS NULL AND position_ticks IS NULL)
+        OR (kind = 'timestamp' AND position_ticks IS NOT NULL AND page_value IS NULL AND percent_value IS NULL)
+        """));
+
+    b.HasKey(e => e.Id);
+    b.Property<string>("_kind").HasColumnName("kind").HasMaxLength(20).IsRequired();
+    b.Property<int?>("_pageValue").HasColumnName("page_value");
+    b.Property<decimal?>("_percentValue").HasColumnName("percent_value").HasPrecision(5, 2);
+    b.Property<long?>("_positionTicks").HasColumnName("position_ticks");
+
+    // Computed purely from the four fields above — not its own column.
+    b.Ignore(e => e.Point);
+}
+```
+
+`_fieldName`-мапваните private полета се четат/пишат от EF през reflection,
+без нужда от `InternalsVisibleTo`.
 
 ---
 
