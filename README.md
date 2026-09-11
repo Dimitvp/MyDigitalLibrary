@@ -3,11 +3,12 @@
 Личен каталог за книги (хартиени / ebook / аудио) — какво притежавам, какво искам,
 какво чета в момента. Виж пълния план за имплементация в [docs/PLAN.md](docs/PLAN.md).
 
-> **Статус:** Етап 5 — Angular skeleton. Домейн (Етап 1), EF Core/Postgres
+> **Статус:** Етап 6 — Импорт по линк/ISBN. Домейн (Етап 1), EF Core/Postgres
 > персистентност (Етап 2), REST API (Етап 3), ASP.NET Core Identity с cookie
-> auth + global query filters (Етап 4) и Angular shell/рутиране/i18n/login/
-> библиотека (Етап 5) са готови. Статистики, графики и тъмна тема идват
-> в по-късен етап.
+> auth + global query filters (Етап 4), Angular shell/рутиране/i18n/login/
+> библиотека (Етап 5) и импорт по линк/ISBN през Open Library/Google Books с
+> преглед-и-потвърждение екран (Етап 6) са готови. Книжарници, CSV импорт и
+> баркод скенер идват в по-късен етап.
 
 ## Стек
 
@@ -91,6 +92,7 @@ GET/PUT     /api/v1/editions/{id}
 GET/POST    /api/v1/library-items, /api/v1/library-items/{id}
 PATCH       /api/v1/library-items/{id}/location, /status
 GET/POST    /api/v1/wishlist, /api/v1/wishlist/{id}/fulfill
+POST        /api/v1/import/lookup   # { url } или { isbn } → кандидат за преглед, нищо не се записва
 ```
 
 Всички ресурсни endpoints изискват вход (cookie auth); мутиращите заявки
@@ -98,6 +100,13 @@ GET/POST    /api/v1/wishlist, /api/v1/wishlist/{id}/fulfill
 получен от `GET /api/v1/auth/antiforgery`. Регистрация през UI изключена
 (`Auth:AllowRegistration = false`) — единственият потребител е seed admin-ът
 от `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` (Development-only, виж `.env.example`).
+
+Импортът пита Open Library (без ключ) и Google Books (ключ по избор,
+`GoogleBooks:ApiKey` — анонимните заявки делят обща квота, която може да е
+изчерпана; при провал на доставчик просто липсва от резултата, не гърми
+заявката). Свалените корици отиват в `Covers:RootDirectory` (Docker: volume,
+виж по-долу) и се сервират през `GET /covers/{файл}` — свалянето е background
+job, не блокира записа на книгата.
 
 Angular dev server-ът (виж Frontend по-горе) вече работи срещу това API.
 Production build зад nginx в самия `docker compose` стек идва в Етап 10.
