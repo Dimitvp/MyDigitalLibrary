@@ -11,9 +11,11 @@ using MyDigitalLibrary.Application.Catalog;
 using MyDigitalLibrary.Application.Editions;
 using MyDigitalLibrary.Application.Import;
 using MyDigitalLibrary.Application.LibraryItems;
+using MyDigitalLibrary.Application.Loans;
 using MyDigitalLibrary.Application.Notes;
 using MyDigitalLibrary.Application.Quotes;
 using MyDigitalLibrary.Application.Reading;
+using MyDigitalLibrary.Application.ReadingGoals;
 using MyDigitalLibrary.Application.Shelves;
 using MyDigitalLibrary.Application.Wishlist;
 using MyDigitalLibrary.Application.Works;
@@ -89,6 +91,8 @@ builder.Services.AddScoped<ShelfService>();
 builder.Services.AddScoped<NoteService>();
 builder.Services.AddScoped<QuoteService>();
 builder.Services.AddScoped<BookstoreListingService>();
+builder.Services.AddScoped<LoanService>();
+builder.Services.AddScoped<ReadingGoalService>();
 
 // Plan section 5 — import by link/ISBN. Priority order = registration order
 // (Open Library before Google Books, per plan section 5.3/5.4).
@@ -202,6 +206,8 @@ app.MapShelfEndpoints();
 app.MapNoteEndpoints();
 app.MapQuoteEndpoints();
 app.MapBookstoreListingEndpoints();
+app.MapLoanEndpoints();
+app.MapReadingGoalEndpoints();
 
 // Plan section 5.6: covers live on disk (a Docker volume in production), never
 // in the database — served as plain static files under /covers.

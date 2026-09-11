@@ -26,6 +26,9 @@ public interface IApplicationDbContext
     DbSet<WorkRating> WorkRatings { get; }
     DbSet<Review> Reviews { get; }
     DbSet<ReadingSession> ReadingSessions { get; }
+    DbSet<Loan> Loans { get; }
+    DbSet<ReadingGoal> ReadingGoals { get; }
+    DbSet<ImportJob> ImportJobs { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
