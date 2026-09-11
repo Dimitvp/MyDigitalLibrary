@@ -369,6 +369,7 @@ GET    /api/v1/import/jobs/{id}
 
 GET    /api/v1/editions/{id}/listings     # оферти по книжарници
 POST   /api/v1/editions/{id}/listings     # ръчно добавяне на линк към книжарница
+PATCH  /api/v1/editions/{id}/listings/{listingId}/discontinued   # не беше изброено тук; ръчният override от т. 6.3
 
 GET    /api/v1/export?format=json|csv     # целият архив — без vendor lock-in
 GET    /api/v1/statistics?year=2026
@@ -586,6 +587,22 @@ public sealed record OfferSnapshot(
 > Селекторите горе са **примерни** — агентът трябва да ги открие сам, като
 > погледне реалния HTML на всяка книжарница, и да ги запише в конфигурацията.
 > Не ги приемай за верни.
+
+**Реално направено в Етап 8** (провери преди да променяш): `robots.txt` беше
+проверен за всичките четири книжарници от началото на тази точка.
+`ozone.bg` активно блокира бот трафик на ниво мрежа (`robots.txt` самото
+връща 403 „Your network is blocked because of heavy bot traffic"), а
+`orangecenter.bg`-ният `robots.txt` изрично забранява точно продуктовите
+страници (`Disallow: /catalog/product/view/id/*`) — за никоя от двете не е
+писан адаптер; заобикалянето на такъв сигнал би било evasion, не учтив
+scraping. `helikon.bg` и `ciela.com` имат permissive `robots.txt`
+(`Allow: /`) и — по-важното — и двете публикуват стандартен schema.org
+`Book`/`Offer` JSON-LD блок (`offers.price`, `offers.priceCurrency`,
+`offers.availability` като `https://schema.org/InStock` и т.н.) на всяка
+продуктова страница. `SchemaOrgBookstoreAdapter` пробва този блок първо —
+устойчив на редизайн, който не пипа structured data — и пада back към
+конфигурируемите CSS селектори по-горе само ако JSON-LD липсва. И двата
+адаптера („helikon", „ciela") работят без нито един конфигуриран селектор.
 
 ### 6.2 Background service
 
