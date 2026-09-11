@@ -325,7 +325,7 @@ GET    /api/v1/works/{id}
 PUT    /api/v1/works/{id}                 # редакция на метаданните на произведението
 GET    /api/v1/works/{id}/editions
 POST   /api/v1/works/{id}/editions        # ново издание на съществуващо произведение
-PUT    /api/v1/works/{id}/rating          # upsert, 1..5 или 1..10 — избери и документирай
+PUT    /api/v1/works/{id}/rating          # upsert, 1..10 (решено в Етап 1, виж WorkRating.MinScore/MaxScore)
 PUT    /api/v1/works/{id}/review
 
 GET    /api/v1/editions/{id}
@@ -335,10 +335,33 @@ GET    /api/v1/wishlist
 POST   /api/v1/wishlist
 POST   /api/v1/wishlist/{id}/fulfill      # → създава LibraryItem, връща 201 + Location
 
+GET    /api/v1/reading-sessions?libraryItemId=    # не беше изброено тук, но сесия създадена през POST трябва да е четима
+GET    /api/v1/reading-sessions/{id}
 POST   /api/v1/reading-sessions
 POST   /api/v1/reading-sessions/{id}/progress
 POST   /api/v1/reading-sessions/{id}/finish
 POST   /api/v1/reading-sessions/{id}/abandon
+
+# Рафтове, бележки, цитати (Етап 7 обхват) — не бяха изброени тук, добавени по
+# същите REST конвенции като останалите ресурси в тази точка.
+GET    /api/v1/shelves
+POST   /api/v1/shelves
+GET    /api/v1/shelves/{id}
+PUT    /api/v1/shelves/{id}               # преименуване
+DELETE /api/v1/shelves/{id}
+POST   /api/v1/shelves/{id}/items
+DELETE /api/v1/shelves/{id}/items/{libraryItemId}
+PUT    /api/v1/shelves/{id}/items/{libraryItemId}/order
+
+GET    /api/v1/library-items/{id}/notes
+POST   /api/v1/library-items/{id}/notes
+PUT    /api/v1/notes/{id}
+DELETE /api/v1/notes/{id}
+
+GET    /api/v1/works/{id}/quotes
+POST   /api/v1/works/{id}/quotes
+PUT    /api/v1/quotes/{id}
+DELETE /api/v1/quotes/{id}
 
 POST   /api/v1/import/lookup              # { url } или { isbn } → кандидат за преглед
 POST   /api/v1/import/csv                 # multipart → ImportJob
@@ -897,8 +920,11 @@ CSV импорт от Goodreads/Calibre, експорт (JSON + CSV), full-text 
 
 ## 14. Отворени въпроси за собственика на проекта
 
-1. Рейтинг скала: 1–5 звезди (като Goodreads) или 1–10? Реши преди Етап 3.
+1. ~~Рейтинг скала: 1–5 звезди (като Goodreads) или 1–10? Реши преди Етап 3.~~
+   **Решено в Етап 1: 1–10.**
 2. Аудиокниги — следим ли от кой доставчик са (Audible / Storytel / файл)?
 3. Хартиените книги: следим ли състояние (ново / добро / износено)?
 4. Нужна ли е история на ревютата (versioned), или последното презаписва?
+   **Все още отворено** — Етап 7 имплементира по-простия вариант (последното
+   презаписва, без история) като подразбиране, не като окончателен отговор.
 5. Кои конкретни книжарници са приоритет за Етап 8?
