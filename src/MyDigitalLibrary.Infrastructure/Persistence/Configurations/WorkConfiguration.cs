@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using MyDigitalLibrary.Domain.Catalog;
 using MyDigitalLibrary.Domain.ValueObjects;
+using MyDigitalLibrary.Infrastructure.Persistence.Conversions;
 
 namespace MyDigitalLibrary.Infrastructure.Persistence.Configurations;
 
@@ -14,6 +15,14 @@ public sealed class WorkConfiguration : IEntityTypeConfiguration<Work>
         builder.Property(w => w.Title).IsRequired().HasMaxLength(500);
         builder.Property(w => w.OriginalTitle).HasMaxLength(500);
         builder.Property(w => w.SeriesId);
+
+        // ManualFieldOverrides (plan 5.5) is a variable-length set of field names — stored
+        // as jsonb, not an OwnsOne with fixed columns.
+        builder.Property(w => w.FieldOverrides)
+            .HasConversion(ManualFieldOverridesConverter.Instance)
+            .HasColumnType("jsonb")
+            .HasColumnName("field_overrides")
+            .IsRequired();
 
         // SeriesPosition wraps a single decimal — a scalar conversion, not an owned type.
         builder.Property(w => w.PositionInSeries)

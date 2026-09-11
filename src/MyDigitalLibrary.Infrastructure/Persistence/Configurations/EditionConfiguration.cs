@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using MyDigitalLibrary.Domain.Catalog;
 using MyDigitalLibrary.Domain.ValueObjects;
+using MyDigitalLibrary.Infrastructure.Persistence.Conversions;
 
 namespace MyDigitalLibrary.Infrastructure.Persistence.Configurations;
 
@@ -18,6 +19,13 @@ public sealed class EditionConfiguration : IEntityTypeConfiguration<Edition>
         builder.Property(e => e.Translator).HasMaxLength(300);
         builder.Property(e => e.Narrator).HasMaxLength(300);
         builder.Property(e => e.CoverImageUrl).HasMaxLength(2000);
+
+        // ManualFieldOverrides (plan 5.5) — same jsonb scalar conversion as WorkConfiguration.
+        builder.Property(e => e.FieldOverrides)
+            .HasConversion(ManualFieldOverridesConverter.Instance)
+            .HasColumnType("jsonb")
+            .HasColumnName("field_overrides")
+            .IsRequired();
 
         // Isbn wraps a single normalized string — a scalar conversion, not an owned type.
         builder.Property(e => e.Isbn13)
