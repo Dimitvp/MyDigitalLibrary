@@ -25,14 +25,6 @@
 7. **Тестове заедно с кода, не след него.** Домейн логика без тест не е готова.
 8. Ако намериш противоречие между този план и реалността (напр. API-то се е
    променило) — **спри, опиши проблема, предложи вариант**, не импровизирай мълчаливо.
-9. **Този файл (`docs/PLAN.md`) е единственият източник на истина.** Няма други
-   копия. Ако намериш `PLAN.md` в корена на репото или извън него — това е
-   остатък, изтрий го, не го редактирай.
-10. **Корекции в плана се правят в отделен commit, преди кода.** Когато открием,
-    че планът греши (както стана с мапването на `ProgressPoint` в т. 7.1),
-    последователността е: поправи `docs/PLAN.md` → `docs: fix ...` commit →
-    едва тогава пиши кода. Никога не поправяй плана така, че да описва каквото
-    вече си написал — това унищожава смисъла му на независима проверка.
 
 ---
 
@@ -306,23 +298,26 @@ ImportJob         Id, UserId, Kind, Status, SourceFileName?, Stats, StartedAt, F
 
 ```
 GET    /api/v1/library-items?format=&status=&shelfId=&q=&page=&pageSize=
-POST   /api/v1/library-items              # виж т. 4.1 — композитен вход
+POST   /api/v1/library-items
 GET    /api/v1/library-items/{id}
 PUT    /api/v1/library-items/{id}
 DELETE /api/v1/library-items/{id}
 PATCH  /api/v1/library-items/{id}/location
 PATCH  /api/v1/library-items/{id}/status
 
+GET    /api/v1/works?q=&authorId=&seriesId=&page=&pageSize=
 GET    /api/v1/works/{id}
-PUT    /api/v1/works/{id}                 # само метаданни; виж т. 4.1 за създаване
+PUT    /api/v1/works/{id}                 # редакция на метаданните на произведението
 GET    /api/v1/works/{id}/editions
-POST   /api/v1/works/{id}/editions        # ново издание към СЪЩЕСТВУВАЩ work
-PUT    /api/v1/editions/{id}              # само метаданни; виж т. 4.1 за създаване
+POST   /api/v1/works/{id}/editions        # ново издание на съществуващо произведение
 PUT    /api/v1/works/{id}/rating          # upsert, 1..5 или 1..10 — избери и документирай
 PUT    /api/v1/works/{id}/review
 
+GET    /api/v1/editions/{id}
+PUT    /api/v1/editions/{id}              # редакция на метаданните на изданието
+
 GET    /api/v1/wishlist
-POST   /api/v1/wishlist                   # виж т. 4.1 — композитен вход
+POST   /api/v1/wishlist
 POST   /api/v1/wishlist/{id}/fulfill      # → създава LibraryItem, връща 201 + Location
 
 POST   /api/v1/reading-sessions
@@ -342,96 +337,55 @@ GET    /api/v1/statistics?year=2026
 GET    /api/v1/search?q=...               # full-text (Етап 9)
 ```
 
-### 4.1 Създаване на книга — композитен вход
+### 4.1 Създаване на книга — композитен вход, не три отделни CRUD ресурса
 
-**Няма `POST /api/v1/works` и няма `POST /api/v1/editions`.** Преди Етап 6
-(импорт) единственият начин потребителят да добави книга е ръчно — а той не
-знае и не го интересува, че „Work" и „Edition" са отделни ентитети. Затова
-създаването е композитно: `POST /api/v1/library-items` и
-`POST /api/v1/wishlist` приемат **или** референция към съществуващ Work/Edition,
-**или** вложен обект, от който бекендът създава целия граф (Work + Edition при
-нужда) в една транзакция.
+> **Внимание — по-ранна версия на този план имаше празнина тук:** изброяваше само
+> `GET` за `works` и `editions`, при което Етап 3 оставаше нефункционален (нямаше
+> как да се създаде `LibraryItem`, защото няма откъде да дойде `EditionId`).
 
-**`POST /api/v1/library-items`**
+**Няма `POST /api/v1/works` и няма `POST /api/v1/editions`.** Самостоятелно
+произведение без издание и без екземпляр е сирак, който никой не иска. Вместо
+това двата входа, през които реално се създава книга, приемат **вложен** payload
+и създават целия граф в **една транзакция**:
 
 ```jsonc
+// POST /api/v1/library-items — „имам я"
+// Вариант А: изданието вече съществува в каталога
+{ "editionId": "…", "format": "Physical", "acquisition": { … } }
+
+// Вариант Б: нова книга — Work + Edition се създават заедно с екземпляра
 {
-  // "edition" е oneOf едно от следните две форми:
-
-  // (A) изданието вече съществува
-  "edition": { "id": "3fa8...-guid" },
-
-  // (B) създай Work (ако work.id липсва) + ново Edition в една транзакция
-  "edition": {
-    "work": {
-      "id": null,                 // null → нов Work; guid → ново Edition към СЪЩЕСТВУВАЩ Work
-      "title": "Dune",            // задължително само когато id е null
-      "originalTitle": null,
-      "description": null,
-      "firstPublicationYear": 1965,
-      "authorIds": ["guid", "..."] // само СЪЩЕСТВУВАЩИ Author id-та; създаване на нов Author не е тук
-    },
-    "format": "Physical",
-    "isbn13": "9780441013593",
-    "publisher": "Ace Books",
-    "language": "en",
-    "translator": null,
-    "publicationYear": 1990,
-    "pageCount": 412,
-    "coverType": "Paperback",
-    "narrator": null,
-    "durationMinutes": null
-  },
-
-  "status": "Owned",              // по избор, подразбиране Owned
-  "acquisition": {
-    "acquiredOn": "2026-01-15",
-    "method": "Bought",
-    "price": { "amount": 14.99, "currencyCode": "USD" },
-    "source": "Local bookstore"
-  },
-  "location": null                // само за Physical; { room, shelf, box }
+  "work":    { "title": "Дюна", "authorNames": ["Франк Хърбърт"], "seriesName": null },
+  "edition": { "isbn13": "9789542828358", "publisher": "Бард", "publicationYear": 2021,
+               "pageCount": 704, "coverType": "Hardcover", "language": "bg" },
+  "format": "Physical",
+  "acquisition": { "acquiredOn": "2026-03-14", "method": "Bought",
+                   "price": { "amount": 34.90, "currencyCode": "BGN" }, "source": "Хеликон" }
 }
 ```
 
-`format` в `edition` (B) диктува кои полета важат — валидацията е същата като
-в домейна (`Edition.SetPublicationDetails`/`SetCoverType`/`SetAudioDetails`):
-`pageCount`/`coverType` само за Physical/Ebook, `narrator`/`durationMinutes`
-само за Audiobook.
-
-**`POST /api/v1/wishlist`**
-
-`WishlistEntry` никога няма Edition (само по избор `preferredEditionId`), затова
-композитният вход тук е на ниво Work, не Edition:
-
 ```jsonc
-{
-  "work": { "id": "guid" } | { "title": "Dune", "originalTitle": null, "description": null, "firstPublicationYear": 1965, "authorIds": [] },
-  "desiredFormat": "Physical",
-  "priority": 3,
-  "preferredEditionId": null,
-  "maxPrice": null,
-  "note": null
-}
+// POST /api/v1/wishlist — „искам я"
+// Вариант А: { "workId": "…", "desiredFormat": "Audiobook", "priority": 3 }
+// Вариант Б: { "work": { "title": "…", "authorNames": [ … ] }, "desiredFormat": "Ebook" }
 ```
+Вариант Б тук е причината `WishlistEntry` да сочи `Work`, а не `Edition` —
+може да искаш книгата, без да си избрал издание.
 
-**Дубликат ISBN:** ако `isbn13` вече съществува на друго Edition — `409
-Conflict`, `errorCode: "edition.duplicate_isbn"`,
-`extensions.existingEditionId: "<guid>"`. Клиентът решава дали да презареди
-и да ползва формата (A) с това id, или да прекрати.
-
-**`POST /api/v1/works/{id}/editions`** добавя ново Edition към **съществуващ**
-Work (id-то от пътя) — същото тяло като `edition` (B) по-горе, но без вложения
-`work` обект. `201 Created` + `Location: /api/v1/works/{workId}/editions/{id}`.
-
-**`PUT /api/v1/works/{id}`** и **`PUT /api/v1/editions/{id}`** редактират само
-метаданни на вече съществуващ ентитет (никакво създаване) — мапват директно
-към `Work.UpdateDetails` / `Edition.SetPublicationDetails` и сродните методи.
-`204 No Content`.
-
-**Няма DELETE за works/editions в v1.** Изтриване на споделен каталожен запис,
-докато други потребители може да го реферират, е риск, който не си струва
-преди multi-user да е реално сценарий.
+**Правила:**
+- Двата варианта са **един** endpoint с oneOf payload, не два endpoint-а. Документирай
+  ги явно в OpenAPI схемата.
+- Дедупликация: ако подаденият ISBN вече съществува → `409 Conflict`,
+  `errorCode: "edition.duplicate"`, и **id-то на съществуващото издание в
+  `extensions`**, за да може UI-ът да предложи „закачи към съществуващото".
+- Същият този контракт приема и екранът за потвърждение от Етап 6 —
+  импортът по линк не получава свои endpoint-и за запис, а сглобява това тяло.
+- `PUT /works/{id}` и `PUT /editions/{id}` съществуват за редакция на метаданните
+  (поправка на заглавие, брой страници) и трябва да отбелязват засегнатите полета
+  в `ManualFieldOverrides` — виж т. 5.5.
+- **Няма `DELETE` за `works` и `editions` в v1.** Изтрива се екземпляр
+  (`DELETE /library-items/{id}`). Каталожните записи без екземпляри са безвредни;
+  ако някога потрябва чистене — отделна задача, не API.
 
 ---
 
@@ -643,88 +597,18 @@ public sealed class AvailabilityRefreshService : BackgroundService
 - Никакъв lazy loading. Изключи го изрично.
 - Миграциите се комитват. Всяка миграция се преглежда преди commit —
   генерираният SQL трябва да е разбираем.
+- `ProgressPoint` мапване: **не** owned type с дискриминатор — EF Core няма
+  `HasDiscriminator` за owned/`OwnedNavigationBuilder` типове (проверено срещу
+  реалния API повърхността на пакета в Етап 2). `ProgressEntry` е обикновен
+  entity в собствена таблица `reading_progress` (не owned от `ReadingSession`).
+  `ProgressPoint` се сплесква от домейна в четири private полета на
+  `ProgressEntry`: `_kind` (string), `_pageValue` (int?), `_percentValue`
+  (decimal?), `_positionTicks` (long?) — мапвани directly по име от
+  Infrastructure с `b.Property<T>("_fieldName")` (EF чете/пише private полета
+  през reflection, без нужда от `InternalsVisibleTo`). CHECK constraint на ниво
+  база гарантира, че точно колоната, отговаряща на `kind`, е non-null.
+  `Point` е computed проекция върху четирите полета, не собствена колона.
 - Soft delete: **не в v1.** Ако решиш да я има по-късно — глобален query filter.
-
-### 7.1 Мапване на `ProgressPoint` (полиморфизъм без EF наследяване)
-
-> **Внимание — това е мястото, където предишна версия на този план беше грешна.**
-> EF Core **не поддържа** наследяване (и следователно `HasDiscriminator()`) върху
-> owned types. Не се опитвай да мапнеш `ProgressPoint` като owned type с
-> дискриминатор — тази комбинация не съществува в EF Core.
-
-**Решение:** полиморфизмът живее **само в домейна**. Персистенцията е плоска, а
-`ProgressEntry` е **нормален ентитет със собствена таблица**, не owned type.
-
-```csharp
-// Domain/Reading/ProgressEntry.cs — без EF атрибути, без internal членове.
-public sealed class ProgressEntry
-{
-    private ProgressKind _kind;
-    private int? _pageValue;
-    private decimal? _percentValue;
-    private long? _positionTicks;
-
-    private ProgressEntry() { }                     // само за EF materialization
-
-    public ProgressEntry(ProgressPoint point, DateTimeOffset recordedAt)
-    {
-        RecordedAt = recordedAt;
-        switch (point)
-        {
-            case PageProgress p:      _kind = ProgressKind.Page;      _pageValue = p.Page; break;
-            case PercentProgress p:   _kind = ProgressKind.Percent;   _percentValue = p.Percent; break;
-            case TimestampProgress p: _kind = ProgressKind.Timestamp; _positionTicks = p.Position.Ticks; break;
-            default: throw new ArgumentOutOfRangeException(nameof(point), point, "Unknown progress point.");
-        }
-    }
-
-    public Guid Id { get; private set; }
-    public DateTimeOffset RecordedAt { get; private set; }
-
-    public ProgressPoint Point => _kind switch      // домейнът вижда само това
-    {
-        ProgressKind.Page      => new PageProgress(_pageValue!.Value),
-        ProgressKind.Percent   => new PercentProgress(_percentValue!.Value),
-        ProgressKind.Timestamp => new TimestampProgress(TimeSpan.FromTicks(_positionTicks!.Value)),
-        _ => throw new InvalidOperationException($"Unknown progress kind: {_kind}")
-    };
-}
-
-public enum ProgressKind { Page = 1, Percent = 2, Timestamp = 3 }
-```
-
-```csharp
-// Infrastructure/Persistence/Configurations/ProgressEntryConfiguration.cs
-public void Configure(EntityTypeBuilder<ProgressEntry> b)
-{
-    b.ToTable("reading_progress", t => t.HasCheckConstraint("ck_reading_progress_kind", """
-           (progress_kind = 1 AND page_value     IS NOT NULL AND percent_value IS NULL AND position_ticks IS NULL)
-        OR (progress_kind = 2 AND percent_value  IS NOT NULL AND page_value    IS NULL AND position_ticks IS NULL)
-        OR (progress_kind = 3 AND position_ticks IS NOT NULL AND page_value    IS NULL AND percent_value  IS NULL)
-        """));
-
-    b.HasKey(e => e.Id);
-    b.Property(e => e.RecordedAt).HasColumnName("recorded_at");
-
-    b.Property<ProgressKind>("_kind").HasColumnName("progress_kind").HasConversion<int>().IsRequired();
-    b.Property<int?>("_pageValue").HasColumnName("page_value");
-    b.Property<decimal?>("_percentValue").HasColumnName("percent_value").HasPrecision(5, 2);
-    b.Property<long?>("_positionTicks").HasColumnName("position_ticks");
-}
-```
-
-**Защо така:**
-- `Property<T>("_fieldName")` мапва **частни полета по име** през reflection.
-  Работи от друго асембли — **няма нужда от `InternalsVisibleTo`** и домейнът не
-  отваря вътрешностите си. Ако по някаква причина откаже, fallback-ът е частни
-  auto-properties вместо полета — **не** JSON колона.
-- Плоски колони, а не `jsonb`, защото статистиките и целите за четене броят
-  страници: `SUM(page_value)` е тривиално, докато
-  `SUM((point->>'page')::int)` е по-грозно и по-трудно за индексиране.
-- Check constraint-ът кара **базата** да пази инварианта „точно колоната, която
-  отговаря на `progress_kind`, е попълнена" — това не можеш да го получиш от JSON.
-- Nullable-ите съществуват само на ниво база. Домейнът вижда единствено
-  `ProgressPoint Point` и никога не пипа трите полета.
 
 ---
 
@@ -872,9 +756,12 @@ Seed на минимални данни (2 work-а, 3 edition-а, 2 library item
 **Извън обхвата:** auth, фронтенд.
 
 ### Етап 3 — CRUD API
-Ресурсите за `library-items`, `works`, `editions`, `wishlist`.
+Ресурсите за `library-items`, `works`, `editions`, `wishlist` — точно както са
+изброени в т. 4, включително **композитния вход от т. 4.1**. Критерий за
+завършеност: през API-то можеш да добавиш нова книга от нула, да я намериш в
+списъка, да я редактираш и да я изтриеш, без да си пипал базата ръчно.
 ProblemDetails, пагинация, валидация, OpenAPI.
-**Извън обхвата:** импорт, четене, книжарници.
+**Извън обхвата:** импорт, четене, книжарници, `DELETE` за works/editions.
 
 ### Етап 4 — Auth
 Identity, cookie auth, `ICurrentUser`, global query filters, тестът за изолация.
