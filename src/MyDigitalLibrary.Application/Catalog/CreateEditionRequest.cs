@@ -12,4 +12,6 @@ public sealed record CreateEditionRequest(
     int? PageCount,
     CoverType? CoverType,
     string? Narrator,
-    int? DurationMinutes);
+    int? DurationMinutes,
+    /// <summary>Plan section 5.6 — carries a cover URL found by import (e.g. from a metadata provider) through to the composite create. Downloaded in the background; never fetched synchronously here.</summary>
+    Uri? CoverUrl = null);

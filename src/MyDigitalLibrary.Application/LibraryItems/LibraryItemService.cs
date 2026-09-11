@@ -86,7 +86,8 @@ public sealed class LibraryItemService(IApplicationDbContext db, BookCatalogServ
             var editionRequest = new CreateEditionRequest(
                 request.Format, request.Edition!.Isbn13, request.Edition.Publisher, request.Edition.Language,
                 request.Edition.Translator, request.Edition.PublicationYear, request.Edition.PageCount,
-                request.Edition.CoverType, request.Edition.Narrator, request.Edition.DurationMinutes);
+                request.Edition.CoverType, request.Edition.Narrator, request.Edition.DurationMinutes,
+                request.Edition.CoverUrl);
 
             var edition = await catalog.CreateEditionAsync(work.Id, editionRequest, ct);
             editionId = edition.Id;

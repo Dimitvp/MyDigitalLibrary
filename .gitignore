@@ -487,5 +487,6 @@ dist/
 .angular/
 npm-debug.log*
 
-# Docker volumes / local data (if bind-mounted here)
-covers/
+# Docker volumes / local data (if bind-mounted here) — anchored to the repo
+# root so it doesn't also match src/MyDigitalLibrary.Infrastructure/Import/Covers/
+/covers/

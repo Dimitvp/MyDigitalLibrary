@@ -14,7 +14,7 @@ namespace MyDigitalLibrary.Application.Catalog;
 /// LibraryItem/Wishlist composite-create paths. Callers own SaveChangesAsync
 /// so everything lands in one transaction.
 /// </summary>
-public sealed class BookCatalogService(IApplicationDbContext db)
+public sealed class BookCatalogService(IApplicationDbContext db, ICoverDownloadQueue coverDownloadQueue)
 {
     public async Task<Work> ResolveOrCreateWorkAsync(CreateWorkRequest request, CancellationToken ct)
     {
@@ -83,6 +83,11 @@ public sealed class BookCatalogService(IApplicationDbContext db)
         }
 
         db.Editions.Add(edition);
+
+        // Plan 5.6: never fetch the cover synchronously — queue it, the book save must not wait on it.
+        if (request.CoverUrl is { } coverUrl)
+            coverDownloadQueue.Enqueue(edition.Id, coverUrl);
+
         return edition;
     }
 

@@ -34,7 +34,9 @@ public sealed record NestedEditionInput(
     int? PageCount,
     CoverType? CoverType,
     string? Narrator,
-    int? DurationMinutes);
+    int? DurationMinutes,
+    /// <summary>Plan section 5.6 — carries a cover URL found by import through to the composite create; downloaded in the background.</summary>
+    Uri? CoverUrl = null);
 
 /// <summary>
 /// oneOf: either EditionId (existing edition) or both Work and Edition
