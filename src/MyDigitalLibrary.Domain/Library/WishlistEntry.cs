@@ -44,6 +44,13 @@ public sealed class WishlistEntry : Entity
         Note = note;
     }
 
+    // For EF Core materialization only: MaxPrice is itself an owned type and
+    // cannot be bound through a constructor parameter, so EF uses this and
+    // sets every property directly instead.
+    private WishlistEntry()
+    {
+    }
+
     public void Update(BookFormat desiredFormat, int priority, Guid? preferredEditionId, Money? maxPrice, string? note)
     {
         ValidatePriority(priority);

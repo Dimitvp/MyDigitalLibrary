@@ -27,6 +27,12 @@ public sealed class Loan : Entity
         DueOn = dueOn;
     }
 
+    // For EF Core materialization only.
+    private Loan()
+    {
+        BorrowerName = null!;
+    }
+
     public void MarkReturned(DateOnly returnedOn)
     {
         if (IsReturned)

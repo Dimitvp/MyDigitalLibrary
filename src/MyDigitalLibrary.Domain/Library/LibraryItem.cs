@@ -34,6 +34,14 @@ public sealed class LibraryItem : Entity
         Status = status;
     }
 
+    // For EF Core materialization only: Acquisition is itself an owned type
+    // and cannot be bound through a constructor parameter, so EF uses this
+    // and sets every property directly instead.
+    private LibraryItem()
+    {
+        Acquisition = null!;
+    }
+
     public void SetLocation(PhysicalLocation? location)
     {
         if (location is not null && Format != BookFormat.Physical)

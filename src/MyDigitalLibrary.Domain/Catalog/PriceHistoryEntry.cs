@@ -15,4 +15,12 @@ public sealed class PriceHistoryEntry : Entity
         Price = price;
         ObservedAt = observedAt;
     }
+
+    // For EF Core materialization only: Price is itself an owned type and
+    // cannot be bound through a constructor parameter, so EF uses this and
+    // sets every field directly instead.
+    private PriceHistoryEntry()
+    {
+        Price = null!;
+    }
 }
