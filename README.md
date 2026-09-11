@@ -3,12 +3,14 @@
 Личен каталог за книги (хартиени / ebook / аудио) — какво притежавам, какво искам,
 какво чета в момента. Виж пълния план за имплементация в [docs/PLAN.md](docs/PLAN.md).
 
-> **Статус:** Етап 6 — Импорт по линк/ISBN. Домейн (Етап 1), EF Core/Postgres
+> **Статус:** Етап 7 — Четене. Домейн (Етап 1), EF Core/Postgres
 > персистентност (Етап 2), REST API (Етап 3), ASP.NET Core Identity с cookie
 > auth + global query filters (Етап 4), Angular shell/рутиране/i18n/login/
-> библиотека (Етап 5) и импорт по линк/ISBN през Open Library/Google Books с
-> преглед-и-потвърждение екран (Етап 6) са готови. Книжарници, CSV импорт и
-> баркод скенер идват в по-късен етап.
+> библиотека (Етап 5), импорт по линк/ISBN през Open Library/Google Books
+> (Етап 6) и четене — читателски сесии/прогрес, рейтинги, ревюта, рафтове,
+> бележки, цитати (Етап 7) са готови (само бекенд, без Angular екрани).
+> Книжарници, CSV импорт, баркод скенер, статистики и цели за четене идват
+> в по-късен етап.
 
 ## Стек
 
@@ -88,10 +90,16 @@ API-то (виж [docs/PLAN.md](docs/PLAN.md) т. 4/4.1 за пълния кон
 POST        /api/v1/auth/login, /api/v1/auth/logout
 GET         /api/v1/auth/me, /api/v1/auth/antiforgery
 GET/POST    /api/v1/works, /api/v1/works/{id}, /api/v1/works/{id}/editions
+PUT         /api/v1/works/{id}/rating, /api/v1/works/{id}/review   # upsert; виж GET /works/{id} за myRating/myReview
 GET/PUT     /api/v1/editions/{id}
 GET/POST    /api/v1/library-items, /api/v1/library-items/{id}
 PATCH       /api/v1/library-items/{id}/location, /status
 GET/POST    /api/v1/wishlist, /api/v1/wishlist/{id}/fulfill
+GET/POST    /api/v1/reading-sessions, /api/v1/reading-sessions/{id}
+POST        /api/v1/reading-sessions/{id}/progress, /finish, /abandon
+GET/POST    /api/v1/shelves, /api/v1/shelves/{id}, /api/v1/shelves/{id}/items
+GET/POST    /api/v1/library-items/{id}/notes, PUT/DELETE /api/v1/notes/{id}
+GET/POST    /api/v1/works/{id}/quotes, PUT/DELETE /api/v1/quotes/{id}
 POST        /api/v1/import/lookup   # { url } или { isbn } → кандидат за преглед, нищо не се записва
 ```
 
