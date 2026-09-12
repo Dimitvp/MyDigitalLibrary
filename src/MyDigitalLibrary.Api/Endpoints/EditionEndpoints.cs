@@ -17,5 +17,13 @@ public static class EditionEndpoints
             await service.UpdateAsync(id, request, ct);
             return Results.NoContent();
         }).AddEndpointFilter<AntiforgeryFilter>();
+
+        group.MapPost("/{id:guid}/cover", async (Guid id, IFormFile file, EditionService service, CancellationToken ct) =>
+        {
+            await using var stream = new MemoryStream();
+            await file.CopyToAsync(stream, ct);
+            var coverImageUrl = await service.UploadCoverAsync(id, stream.ToArray(), file.ContentType, ct);
+            return Results.Ok(new { coverImageUrl });
+        }).DisableAntiforgery().AddEndpointFilter<AntiforgeryFilter>();
     }
 }

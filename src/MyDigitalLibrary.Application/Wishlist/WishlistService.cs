@@ -86,9 +86,9 @@ public sealed class WishlistService(IApplicationDbContext db, BookCatalogService
         await db.SaveChangesAsync(ct);
 
         var editionDisplayInfo = await catalog.GetEditionDisplayInfoAsync([request.EditionId], ct);
-        return LibraryItemMapper.ToDto(libraryItem, editionDisplayInfo.GetValueOrDefault(request.EditionId, EmptyEditionDisplayInfo));
+        return LibraryItemMapper.ToDto(libraryItem, editionDisplayInfo.GetValueOrDefault(request.EditionId, EmptyEditionDisplayInfo), ReadingInfo.Empty);
     }
 
-    private static readonly WorkDisplayInfo EmptyDisplayInfo = new("?", []);
-    private static readonly EditionDisplayInfo EmptyEditionDisplayInfo = new("?", [], null);
+    private static readonly WorkDisplayInfo EmptyDisplayInfo = new("?", [], []);
+    private static readonly EditionDisplayInfo EmptyEditionDisplayInfo = new("?", [], null, null, []);
 }

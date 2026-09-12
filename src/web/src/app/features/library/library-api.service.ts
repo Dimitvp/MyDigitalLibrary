@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import type { CreateLibraryItemRequest, LibraryItem, PagedResult } from '../../core/api/models';
+import type { Acquisition, CreateLibraryItemRequest, LibraryItem, PagedResult } from '../../core/api/models';
 
 export interface ListLibraryItemsParams {
   q?: string;
@@ -29,6 +29,10 @@ export class LibraryApiService {
 
   create(request: CreateLibraryItemRequest): Observable<LibraryItem> {
     return this.http.post<LibraryItem>(this.baseUrl, request);
+  }
+
+  updateNote(id: string, acquisition: Acquisition, personalNote: string | null): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/${id}`, { acquisition, personalNote });
   }
 
   delete(id: string): Observable<void> {

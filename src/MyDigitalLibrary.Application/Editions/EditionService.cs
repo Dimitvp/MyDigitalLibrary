@@ -6,7 +6,7 @@ using MyDigitalLibrary.Domain.ValueObjects;
 
 namespace MyDigitalLibrary.Application.Editions;
 
-public sealed class EditionService(IApplicationDbContext db)
+public sealed class EditionService(IApplicationDbContext db, ICoverStorage coverStorage)
 {
     public async Task<EditionDto> GetAsync(Guid id, CancellationToken ct)
     {
@@ -54,6 +54,29 @@ public sealed class EditionService(IApplicationDbContext db)
             Edition.Fields.PublicationYear, Edition.Fields.PageCount, Edition.Fields.Narrator, Edition.Fields.Duration);
 
         await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>
+    /// Saves a user-uploaded cover image and points the edition at it,
+    /// replacing whatever cover (if any) it had before. Unlike the import
+    /// pipeline's <see cref="Abstractions.ICoverDownloadQueue"/>, this runs
+    /// synchronously — the bytes are already local, there's no network fetch
+    /// to keep off the request path.
+    /// </summary>
+    public async Task<string> UploadCoverAsync(Guid id, byte[] imageBytes, string contentType, CancellationToken ct)
+    {
+        var edition = await db.Editions.FirstOrDefaultAsync(e => e.Id == id, ct)
+            ?? throw new NotFoundException("edition.not_found", $"Edition '{id}' was not found.");
+
+        var stored = await coverStorage.SaveAsync(imageBytes, contentType, ct)
+            ?? throw new AppValidationException("edition.cover_rejected", "That image couldn't be used — check the file type (JPEG/PNG/WebP) and size (max 5 MB).");
+
+        var url = new Uri($"/covers/{stored.FileName}", UriKind.Relative);
+        edition.SetCoverImage(url);
+        edition.MarkFieldsOverridden(Edition.Fields.CoverImageUrl);
+        await db.SaveChangesAsync(ct);
+
+        return url.ToString();
     }
 
     internal static IQueryable<EditionRow> Project(IQueryable<Edition> source) => source

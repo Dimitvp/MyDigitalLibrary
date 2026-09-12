@@ -13,6 +13,11 @@ export const routes: Routes = [
     loadChildren: () => import('./features/library/library.routes').then((m) => m.libraryRoutes),
   },
   {
+    path: 'wishlist',
+    canActivate: [authGuard],
+    loadChildren: () => import('./features/wishlist/wishlist.routes').then((m) => m.wishlistRoutes),
+  },
+  {
     path: 'import',
     canActivate: [authGuard],
     loadComponent: () => import('./features/import/import.page').then((m) => m.ImportPage),

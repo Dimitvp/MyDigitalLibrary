@@ -1,0 +1,40 @@
+<div class="wishlist-form">
+  <h1>{{ 'wishlist.form.addTitle' | transloco }}</h1>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <label>
+      <span>{{ 'wishlist.form.workTitle' | transloco }}</span>
+      <input type="text" formControlName="workTitle" required />
+    </label>
+
+    <label>
+      <span>{{ 'wishlist.form.authorNames' | transloco }}</span>
+      <input type="text" formControlName="authorNames" />
+    </label>
+
+    <label>
+      <span>{{ 'wishlist.form.format' | transloco }}</span>
+      <select formControlName="desiredFormat">
+        @for (format of formats; track format) {
+          <option [value]="format">{{ 'library.format.' + format | transloco }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      <span>{{ 'wishlist.form.priority' | transloco }}</span>
+      <input type="number" min="1" formControlName="priority" />
+    </label>
+
+    <label>
+      <span>{{ 'wishlist.form.note' | transloco }}</span>
+      <input type="text" formControlName="note" />
+    </label>
+
+    <div class="actions">
+      <button type="submit" [disabled]="form.invalid || submitting()">
+        {{ 'wishlist.form.save' | transloco }}
+      </button>
+    </div>
+  </form>
+</div>

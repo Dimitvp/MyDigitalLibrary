@@ -4,42 +4,133 @@
   <div class="detail">
     <a routerLink="/library">← {{ 'library.detail.back' | transloco }}</a>
 
-    <h1>{{ item.workTitle }}</h1>
-    @if (item.authorNames.length > 0) {
-      <p class="authors">{{ item.authorNames.join(', ') }}</p>
-    }
+    <div class="layout">
+      <div class="cover-block">
+        <div class="cover">
+          @if (coverImageUrl()) {
+            <img [src]="coverImageUrl()" [alt]="item.workTitle" />
+          } @else {
+            <div class="cover-placeholder" [attr.aria-label]="'library.list.noCover' | transloco">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H18a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6.5A1.5 1.5 0 0 1 5 19.5v-15Z" stroke="currentColor" stroke-width="1.2"/>
+                <path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H8v18H6.5A1.5 1.5 0 0 1 5 19.5v-15Z" fill="currentColor" opacity=".2" stroke="currentColor" stroke-width="1.2"/>
+              </svg>
+            </div>
+          }
+        </div>
+        <label class="cover-upload">
+          {{ 'library.detail.changeCover' | transloco }}
+          <input type="file" accept="image/jpeg,image/png,image/webp" #coverInput (change)="onCoverSelected(coverInput)" [disabled]="uploadingCover()" />
+        </label>
+      </div>
 
-    <dl>
-      <dt>{{ 'library.form.format' | transloco }}</dt>
-      <dd>{{ 'library.format.' + item.format | transloco }}</dd>
+      <div class="body">
+        <h1>{{ item.workTitle }}</h1>
+        @if (item.authorNames.length > 0) {
+          <p class="authors">{{ item.authorNames.join(', ') }}</p>
+        }
+        <div class="pill-row">
+          <span class="pill" [class]="item.status.toLowerCase()">{{ 'library.status.' + item.status | transloco }}</span>
+          <span class="pill reading" [class]="(readingStatus() ?? 'notstarted').toLowerCase()">
+            {{ 'library.reading.' + (readingStatus() ?? 'notStarted') | transloco }}
+          </span>
+        </div>
 
-      <dt>{{ 'library.form.status' | transloco }}</dt>
-      <dd>{{ 'library.status.' + item.status | transloco }}</dd>
+        <div class="reading-section">
+          @if (readingStartedOn()) {
+            <p class="reading-dates">
+              {{ 'library.reading.startedOn' | transloco }}: <strong>{{ readingStartedOn() }}</strong>
+              @if (readingEndedOn()) {
+                · {{ 'library.reading.finishedOn' | transloco }}: <strong>{{ readingEndedOn() }}</strong>
+              }
+            </p>
+          }
 
-      <dt>{{ 'library.form.acquiredOn' | transloco }}</dt>
-      <dd>{{ item.acquisition.acquiredOn }}</dd>
+          @if (readingStatus() === 'Reading') {
+            <div class="reading-actions">
+              <input type="date" [value]="endDateInput()" (input)="endDateInput.set($any($event.target).value)" />
+              <button type="button" (click)="finishReading()" [disabled]="readingBusy()">
+                {{ 'library.reading.finishButton' | transloco }}
+              </button>
+            </div>
+          } @else {
+            <div class="reading-actions">
+              <input type="date" [value]="startDateInput()" (input)="startDateInput.set($any($event.target).value)" />
+              <button type="button" (click)="startReading()" [disabled]="readingBusy()">
+                {{ 'library.reading.startButton' | transloco }}
+              </button>
+            </div>
+          }
+        </div>
 
-      <dt>{{ 'library.form.acquisitionMethod' | transloco }}</dt>
-      <dd>{{ 'library.acquisitionMethod.' + item.acquisition.method | transloco }}</dd>
+        <dl>
+          <dt>{{ 'library.form.format' | transloco }}</dt>
+          <dd>{{ 'library.format.' + item.format | transloco }}</dd>
 
-      @if (item.acquisition.price; as price) {
-        <dt>{{ 'library.form.price' | transloco }}</dt>
-        <dd>{{ price.amount }} {{ price.currencyCode }}</dd>
-      }
+          <dt>{{ 'library.form.acquiredOn' | transloco }}</dt>
+          <dd>{{ item.acquisition.acquiredOn }}</dd>
 
-      @if (item.acquisition.source) {
-        <dt>{{ 'library.form.source' | transloco }}</dt>
-        <dd>{{ item.acquisition.source }}</dd>
-      }
+          <dt>{{ 'library.form.acquisitionMethod' | transloco }}</dt>
+          <dd>{{ 'library.acquisitionMethod.' + item.acquisition.method | transloco }}</dd>
 
-      @if (item.personalNote) {
-        <dt>{{ 'library.detail.note' | transloco }}</dt>
-        <dd>{{ item.personalNote }}</dd>
-      }
-    </dl>
+          @if (item.acquisition.price; as price) {
+            <dt>{{ 'library.form.price' | transloco }}</dt>
+            <dd>{{ price.amount }} {{ price.currencyCode }}</dd>
+          }
 
-    <button type="button" class="delete" (click)="delete()" [disabled]="deleting()">
-      {{ 'library.detail.delete' | transloco }}
-    </button>
+          @if (item.acquisition.source) {
+            <dt>{{ 'library.form.source' | transloco }}</dt>
+            <dd>{{ item.acquisition.source }}</dd>
+          }
+        </dl>
+
+        <div class="note-section">
+          <label for="personal-note">{{ 'library.detail.note' | transloco }}</label>
+          <textarea
+            id="personal-note"
+            rows="4"
+            [placeholder]="'library.detail.notePlaceholder' | transloco"
+            [value]="noteDraft()"
+            (input)="onNoteInput($any($event.target).value)"
+          ></textarea>
+          <div class="note-actions">
+            <button type="button" (click)="saveNote()" [disabled]="savingNote()">
+              {{ 'library.detail.noteSave' | transloco }}
+            </button>
+            @if (noteSaved()) {
+              <span class="saved">{{ 'library.detail.noteSaved' | transloco }}</span>
+            }
+          </div>
+        </div>
+
+        <div class="genre-section">
+          <label>{{ 'library.form.genres' | transloco }}</label>
+          <div class="genre-options">
+            @for (genre of genresResource.value(); track genre.id) {
+              <label class="checkbox">
+                <input
+                  type="checkbox"
+                  [checked]="selectedGenres().includes(genre.name)"
+                  (change)="toggleGenre(genre.name, $any($event.target).checked)"
+                />
+                <span>{{ genre.name }}</span>
+              </label>
+            }
+          </div>
+          <div class="note-actions">
+            <button type="button" (click)="saveGenres()" [disabled]="savingGenres()">
+              {{ 'library.detail.saveGenres' | transloco }}
+            </button>
+            @if (genresSaved()) {
+              <span class="saved">{{ 'library.detail.noteSaved' | transloco }}</span>
+            }
+          </div>
+        </div>
+
+        <button type="button" class="delete" (click)="delete()" [disabled]="deleting()">
+          {{ 'library.detail.delete' | transloco }}
+        </button>
+      </div>
+    </div>
   </div>
 }

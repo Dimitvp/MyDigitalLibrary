@@ -132,6 +132,7 @@ export class ImportPage {
           .filter((name) => name.length > 0),
         seriesName: null,
         seriesPosition: null,
+        genreNames: null,
       },
       edition: {
         isbn13: current.isbn13,

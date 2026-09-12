@@ -1,1 +1,52 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global design tokens — warm paper palette, shared by the shell and all feature pages. */
+:root {
+  --bg: #f5f1e8;
+  --surface: #ffffff;
+  --surface-2: #efe9db;
+  --ink: #262019;
+  --muted: #6f6656;
+  --line: #e1d8c4;
+  --accent: #3f5d43;
+  --accent-ink: #f5f1e8;
+  --leather: #8a5a34;
+
+  --status-owned-bg: #e4efe2;
+  --status-owned-fg: #276242;
+  --status-borrowed-bg: #e6edf6;
+  --status-borrowed-fg: #2f5588;
+  --status-lentout-bg: #faedd6;
+  --status-lentout-fg: #8a5a12;
+  --status-sold-bg: #f6e3e0;
+  --status-sold-fg: #96392e;
+  --status-givenaway-bg: #efe9db;
+  --status-givenaway-fg: #6f6656;
+
+  --shadow: 0 1px 2px rgba(38, 32, 25, .06), 0 6px 20px -10px rgba(38, 32, 25, .18);
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  text-wrap: balance;
+}
+
+a {
+  color: inherit;
+}

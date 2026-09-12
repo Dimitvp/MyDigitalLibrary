@@ -41,7 +41,10 @@ public sealed class LibraryItemService(IApplicationDbContext db, BookCatalogServ
             .ToListAsync(ct);
 
         var displayInfo = await catalog.GetEditionDisplayInfoAsync(rows.Select(r => r.EditionId), ct);
-        var items = rows.Select(r => r.ToDto(displayInfo.GetValueOrDefault(r.EditionId, EmptyDisplayInfo))).ToList();
+        var readingInfo = await GetLatestReadingInfoAsync(rows.Select(r => r.Id), ct);
+        var items = rows
+            .Select(r => r.ToDto(displayInfo.GetValueOrDefault(r.EditionId, EmptyDisplayInfo), readingInfo.GetValueOrDefault(r.Id, ReadingInfo.Empty)))
+            .ToList();
 
         return new PagedResult<LibraryItemDto>(items, normalizedPage, normalizedPageSize, totalCount);
     }
@@ -52,7 +55,8 @@ public sealed class LibraryItemService(IApplicationDbContext db, BookCatalogServ
             ?? throw NotFound(id);
 
         var displayInfo = await catalog.GetEditionDisplayInfoAsync([row.EditionId], ct);
-        return row.ToDto(displayInfo.GetValueOrDefault(row.EditionId, EmptyDisplayInfo));
+        var readingInfo = await GetLatestReadingInfoAsync([row.Id], ct);
+        return row.ToDto(displayInfo.GetValueOrDefault(row.EditionId, EmptyDisplayInfo), readingInfo.GetValueOrDefault(row.Id, ReadingInfo.Empty));
     }
 
     public async Task<LibraryItemDto> CreateAsync(CreateLibraryItemRequest request, Guid userId, CancellationToken ct)
@@ -102,7 +106,7 @@ public sealed class LibraryItemService(IApplicationDbContext db, BookCatalogServ
         await db.SaveChangesAsync(ct);
 
         var displayInfo = await catalog.GetEditionDisplayInfoAsync([editionId], ct);
-        return LibraryItemMapper.ToDto(item, displayInfo.GetValueOrDefault(editionId, EmptyDisplayInfo));
+        return LibraryItemMapper.ToDto(item, displayInfo.GetValueOrDefault(editionId, EmptyDisplayInfo), ReadingInfo.Empty);
     }
 
     public async Task UpdateAsync(Guid id, UpdateLibraryItemRequest request, Guid userId, CancellationToken ct)
@@ -144,7 +148,27 @@ public sealed class LibraryItemService(IApplicationDbContext db, BookCatalogServ
         await db.SaveChangesAsync(ct);
     }
 
-    private static readonly EditionDisplayInfo EmptyDisplayInfo = new("?", [], null);
+    private static readonly EditionDisplayInfo EmptyDisplayInfo = new("?", [], null, null, []);
+
+    /// <summary>
+    /// One row per library item, taken from its most recently started
+    /// ReadingSession (rereads start a new session rather than reusing the
+    /// old one, so "most recent" is the right notion of current status).
+    /// </summary>
+    private async Task<Dictionary<Guid, ReadingInfo>> GetLatestReadingInfoAsync(IEnumerable<Guid> libraryItemIds, CancellationToken ct)
+    {
+        var ids = libraryItemIds.Distinct().ToList();
+        if (ids.Count == 0)
+            return [];
+
+        var latestSessions = await db.ReadingSessions.AsNoTracking()
+            .Where(s => ids.Contains(s.LibraryItemId))
+            .GroupBy(s => s.LibraryItemId)
+            .Select(g => g.OrderByDescending(s => s.StartedOn).First())
+            .ToListAsync(ct);
+
+        return latestSessions.ToDictionary(s => s.LibraryItemId, s => new ReadingInfo(s.Status, s.StartedOn, s.EndedOn));
+    }
 
     private static NotFoundException NotFound(Guid id) => new("library_item.not_found", $"Library item '{id}' was not found.");
 
@@ -176,7 +200,9 @@ internal sealed record LibraryItemRow(
     PhysicalLocationDto? Location,
     string? PersonalNote)
 {
-    public LibraryItemDto ToDto(EditionDisplayInfo displayInfo) => new(
+    public LibraryItemDto ToDto(EditionDisplayInfo displayInfo, ReadingInfo readingInfo) => new(
         Id, UserId, EditionId, Format, Status, Acquisition, Location, PersonalNote,
-        displayInfo.WorkTitle, displayInfo.AuthorNames, displayInfo.CoverImageUrl);
+        displayInfo.WorkTitle, displayInfo.AuthorNames, displayInfo.CoverImageUrl,
+        readingInfo.Status, readingInfo.StartedOn, readingInfo.EndedOn,
+        displayInfo.Language, displayInfo.GenreNames, displayInfo.WorkId);
 }

@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MyDigitalLibrary.Application.Abstractions;
 
 namespace MyDigitalLibrary.Infrastructure.Import.Covers;
 

@@ -16,6 +16,7 @@ public interface IApplicationDbContext
     DbSet<Edition> Editions { get; }
     DbSet<Author> Authors { get; }
     DbSet<Series> Series { get; }
+    DbSet<Genre> Genres { get; }
     DbSet<Bookstore> Bookstores { get; }
     DbSet<BookstoreListing> BookstoreListings { get; }
     DbSet<LibraryItem> LibraryItems { get; }

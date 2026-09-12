@@ -41,8 +41,33 @@ public sealed class BookCatalogService(IApplicationDbContext db, ICoverDownloadQ
             work.AssignToSeries(series.Id, new SeriesPosition(request.SeriesPosition.Value));
         }
 
+        if (request.GenreNames is { Count: > 0 })
+        {
+            foreach (var name in request.GenreNames)
+            {
+                var genre = await ResolveOrCreateGenreAsync(name, ct);
+                work.AddGenre(genre.Id);
+            }
+        }
+
         db.Works.Add(work);
         return work;
+    }
+
+    /// <summary>Replaces a work's genre set by name, creating any that don't exist yet — same resolve-or-create pattern as authors/series.</summary>
+    public async Task SetGenresAsync(Work work, IReadOnlyList<string>? genreNames, CancellationToken ct)
+    {
+        foreach (var existingId in work.GenreIds.ToList())
+            work.RemoveGenre(existingId);
+
+        if (genreNames is not { Count: > 0 })
+            return;
+
+        foreach (var name in genreNames)
+        {
+            var genre = await ResolveOrCreateGenreAsync(name, ct);
+            work.AddGenre(genre.Id);
+        }
     }
 
     public async Task<Edition> CreateEditionAsync(Guid workId, CreateEditionRequest request, CancellationToken ct)
@@ -117,6 +142,19 @@ public sealed class BookCatalogService(IApplicationDbContext db, ICoverDownloadQ
         return series;
     }
 
+    private async Task<Genre> ResolveOrCreateGenreAsync(string name, CancellationToken ct)
+    {
+        var trimmed = name.Trim();
+
+        var existing = await db.Genres.FirstOrDefaultAsync(g => g.Name == trimmed, ct);
+        if (existing is not null)
+            return existing;
+
+        var genre = new Genre(trimmed);
+        db.Genres.Add(genre);
+        return genre;
+    }
+
     // "Frank Herbert" -> "Herbert, Frank". A naive last-token heuristic — good
     // enough for v1 manual entry, not meant to handle every naming convention.
     private static string DeriveSortName(string fullName)
@@ -138,7 +176,7 @@ public sealed class BookCatalogService(IApplicationDbContext db, ICoverDownloadQ
 
         var editions = await db.Editions.AsNoTracking()
             .Where(e => ids.Contains(e.Id))
-            .Select(e => new { e.Id, e.WorkId, e.CoverImageUrl })
+            .Select(e => new { e.Id, e.WorkId, e.CoverImageUrl, e.Language })
             .ToListAsync(ct);
 
         var workInfo = await GetWorkDisplayInfoAsync(editions.Select(e => e.WorkId), ct);
@@ -148,10 +186,13 @@ public sealed class BookCatalogService(IApplicationDbContext db, ICoverDownloadQ
             e => new EditionDisplayInfo(
                 workInfo.TryGetValue(e.WorkId, out var w) ? w.Title : "?",
                 workInfo.TryGetValue(e.WorkId, out var w2) ? w2.AuthorNames : [],
-                e.CoverImageUrl?.ToString()));
+                e.CoverImageUrl?.ToString(),
+                e.Language,
+                workInfo.TryGetValue(e.WorkId, out var w3) ? w3.GenreNames : [],
+                e.WorkId));
     }
 
-    /// <summary>Denormalized title/authors for a batch of works — same reason as <see cref="GetEditionDisplayInfoAsync"/>.</summary>
+    /// <summary>Denormalized title/authors/genres for a batch of works — same reason as <see cref="GetEditionDisplayInfoAsync"/>.</summary>
     public async Task<Dictionary<Guid, WorkDisplayInfo>> GetWorkDisplayInfoAsync(IEnumerable<Guid> workIds, CancellationToken ct)
     {
         var ids = workIds.Distinct().ToList();
@@ -160,7 +201,7 @@ public sealed class BookCatalogService(IApplicationDbContext db, ICoverDownloadQ
 
         var works = await db.Works.AsNoTracking()
             .Where(w => ids.Contains(w.Id))
-            .Select(w => new { w.Id, w.Title, AuthorIds = w.Authors.Select(a => a.AuthorId).ToList() })
+            .Select(w => new { w.Id, w.Title, AuthorIds = w.Authors.Select(a => a.AuthorId).ToList(), w.GenreIds })
             .ToListAsync(ct);
 
         var authorIds = works.SelectMany(w => w.AuthorIds).Distinct().ToList();
@@ -169,12 +210,27 @@ public sealed class BookCatalogService(IApplicationDbContext db, ICoverDownloadQ
             .Select(a => new { a.Id, a.FullName })
             .ToDictionaryAsync(a => a.Id, a => a.FullName, ct);
 
+        var genreIds = works.SelectMany(w => w.GenreIds).Distinct().ToList();
+        var genreNames = await db.Genres.AsNoTracking()
+            .Where(g => genreIds.Contains(g.Id))
+            .Select(g => new { g.Id, g.Name })
+            .ToDictionaryAsync(g => g.Id, g => g.Name, ct);
+
         return works.ToDictionary(
             w => w.Id,
-            w => new WorkDisplayInfo(w.Title, w.AuthorIds.Select(id => authorNames.GetValueOrDefault(id, "?")).ToList()));
+            w => new WorkDisplayInfo(
+                w.Title,
+                w.AuthorIds.Select(id => authorNames.GetValueOrDefault(id, "?")).ToList(),
+                w.GenreIds.Select(id => genreNames.GetValueOrDefault(id, "?")).ToList()));
     }
 }
 
-public sealed record EditionDisplayInfo(string WorkTitle, IReadOnlyList<string> AuthorNames, string? CoverImageUrl);
+public sealed record EditionDisplayInfo(
+    string WorkTitle,
+    IReadOnlyList<string> AuthorNames,
+    string? CoverImageUrl,
+    string? Language,
+    IReadOnlyList<string> GenreNames,
+    Guid WorkId = default);
 
-public sealed record WorkDisplayInfo(string Title, IReadOnlyList<string> AuthorNames);
+public sealed record WorkDisplayInfo(string Title, IReadOnlyList<string> AuthorNames, IReadOnlyList<string> GenreNames);

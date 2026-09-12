@@ -1,6 +1,7 @@
 using MyDigitalLibrary.Application.Catalog;
 using MyDigitalLibrary.Domain.Enums;
 using DomainLibraryItem = MyDigitalLibrary.Domain.Library.LibraryItem;
+using DomainReadingStatus = MyDigitalLibrary.Domain.Enums.ReadingStatus;
 
 namespace MyDigitalLibrary.Application.LibraryItems;
 
@@ -21,7 +22,20 @@ public sealed record LibraryItemDto(
     string? PersonalNote,
     string WorkTitle,
     IReadOnlyList<string> AuthorNames,
-    string? CoverImageUrl);
+    string? CoverImageUrl,
+    /// <summary>Derived from the most recently started ReadingSession for this item, if any (null = never started).</summary>
+    DomainReadingStatus? ReadingStatus,
+    DateOnly? ReadingStartedOn,
+    DateOnly? ReadingEndedOn,
+    string? Language,
+    IReadOnlyList<string> GenreNames,
+    Guid WorkId);
+
+/// <summary>Latest-session reading state for a library item, as stitched onto the list/detail DTO.</summary>
+public readonly record struct ReadingInfo(DomainReadingStatus? Status, DateOnly? StartedOn, DateOnly? EndedOn)
+{
+    public static readonly ReadingInfo Empty = new(null, null, null);
+}
 
 /// <summary>Nested edition fields for the composite create payload — Format comes
 /// from the request's top-level Format, not repeated here (plan section 4.1).</summary>
@@ -59,7 +73,7 @@ public sealed record UpdateStatusRequest(OwnershipStatus Status);
 
 public static class LibraryItemMapper
 {
-    public static LibraryItemDto ToDto(DomainLibraryItem item, EditionDisplayInfo displayInfo) => new(
+    public static LibraryItemDto ToDto(DomainLibraryItem item, EditionDisplayInfo displayInfo, ReadingInfo readingInfo) => new(
         item.Id, item.UserId, item.EditionId, item.Format, item.Status,
         new AcquisitionDto(
             item.Acquisition.AcquiredOn,
@@ -70,5 +84,11 @@ public static class LibraryItemMapper
         item.PersonalNote,
         displayInfo.WorkTitle,
         displayInfo.AuthorNames,
-        displayInfo.CoverImageUrl);
+        displayInfo.CoverImageUrl,
+        readingInfo.Status,
+        readingInfo.StartedOn,
+        readingInfo.EndedOn,
+        displayInfo.Language,
+        displayInfo.GenreNames,
+        displayInfo.WorkId);
 }

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -47,6 +48,11 @@ builder.Services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<My
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
+
+// Persisted to a volume (not the container filesystem) so a redeploy/restart
+// doesn't rotate the key ring and silently invalidate every signed-in cookie.
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(builder.Configuration["DataProtection:KeysDirectory"] ?? "keys"));
 
 // Plan section 8: ASP.NET Core Identity + cookie auth, no roles (out of scope),
 // no self-registration (Auth:AllowRegistration stays false — no endpoint reads
@@ -207,6 +213,7 @@ app.MapHealthChecks("/health/ready");
 
 app.MapAuthEndpoints();
 app.MapWorkEndpoints();
+app.MapGenreEndpoints();
 app.MapEditionEndpoints();
 app.MapLibraryItemEndpoints();
 app.MapWishlistEndpoints();

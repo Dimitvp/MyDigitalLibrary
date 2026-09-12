@@ -26,6 +26,7 @@ services:
       Covers__RootDirectory: /app/covers
     volumes:
       - covers:/app/covers
+      - dpkeys:/app/keys
     depends_on:
       db:
         condition: service_healthy
@@ -33,3 +34,4 @@ services:
 volumes:
   pgdata:
   covers:
+  dpkeys:

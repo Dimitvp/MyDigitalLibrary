@@ -21,20 +21,42 @@
       "title": "My Library",
       "empty": "You haven't added any books yet.",
       "add": "Add book",
-      "search": "Search by title..."
+      "search": "Search by title...",
+      "totalBooks": "Total books",
+      "noCover": "No cover",
+      "currentlyReading": "Currently reading"
     },
     "detail": {
       "title": "Details",
       "back": "Back to list",
       "delete": "Delete",
       "deleteConfirm": "Are you sure you want to delete this book?",
-      "note": "Note"
+      "note": "Note",
+      "notePlaceholder": "Add a note about this book...",
+      "noteSave": "Save note",
+      "noteSaved": "Note saved",
+      "changeCover": "Change cover",
+      "saveGenres": "Save category"
+    },
+    "reading": {
+      "notStarted": "Unread",
+      "Reading": "Currently reading",
+      "Finished": "Read",
+      "Abandoned": "Abandoned",
+      "OnHold": "On hold",
+      "startedOn": "Started on",
+      "finishedOn": "Finished on",
+      "startButton": "Start reading",
+      "finishButton": "Mark as finished"
     },
     "form": {
       "addTitle": "Add a book",
       "workTitle": "Title",
       "authorNames": "Author(s) (comma-separated)",
       "format": "Format",
+      "language": "Language",
+      "genres": "Category",
+      "cover": "Cover",
       "status": "Status",
       "isbn": "ISBN",
       "publisher": "Publisher",
@@ -67,6 +89,24 @@
       "Borrowed": "Borrowed",
       "Inherited": "Inherited",
       "Downloaded": "Downloaded"
+    }
+  },
+  "wishlist": {
+    "list": {
+      "title": "Wishlist",
+      "empty": "Your wishlist is empty.",
+      "add": "Add to wishlist",
+      "priority": "Priority",
+      "addedOn": "Added on"
+    },
+    "form": {
+      "addTitle": "Add a book to your wishlist",
+      "workTitle": "Title",
+      "authorNames": "Author(s) (comma-separated)",
+      "format": "Desired format",
+      "priority": "Priority (1 = highest)",
+      "note": "Note",
+      "save": "Add"
     }
   },
   "import": {

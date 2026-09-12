@@ -15,7 +15,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: unknown) => {
-      if (error instanceof HttpErrorResponse && error.status !== 401) {
+      // Static asset requests (e.g. i18n files) aren't API calls and never carry a
+      // ProblemDetails body. Notifying about them here would also depend on the
+      // very translations that just failed to load, risking a load/notify feedback loop.
+      const isAssetRequest = req.url.startsWith('/assets/');
+      if (!isAssetRequest && error instanceof HttpErrorResponse && error.status !== 401) {
         const problem = error.error as ProblemDetails | null;
         notifications.show(problem?.errorCode ? `errors.${problem.errorCode}` : 'errors.generic');
       }

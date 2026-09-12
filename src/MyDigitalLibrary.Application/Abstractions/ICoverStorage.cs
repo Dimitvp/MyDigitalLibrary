@@ -1,4 +1,4 @@
-namespace MyDigitalLibrary.Infrastructure.Import.Covers;
+namespace MyDigitalLibrary.Application.Abstractions;
 
 public sealed record StoredCover(string FileName);
 

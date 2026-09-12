@@ -21,6 +21,38 @@
       </select>
     </label>
 
+    <label>
+      <span>{{ 'library.form.language' | transloco }}</span>
+      <select formControlName="language">
+        <option value="bg">BG</option>
+        <option value="en">EN</option>
+      </select>
+    </label>
+
+    <fieldset>
+      <legend>{{ 'library.form.genres' | transloco }}</legend>
+      <div class="genre-options">
+        @for (genre of genresResource.value(); track genre.id) {
+          <label class="checkbox">
+            <input
+              type="checkbox"
+              [checked]="selectedGenres().includes(genre.name)"
+              (change)="toggleGenre(genre.name, $any($event.target).checked)"
+            />
+            <span>{{ genre.name }}</span>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>{{ 'library.form.cover' | transloco }}</legend>
+      <input type="file" accept="image/jpeg,image/png,image/webp" #coverInput (change)="onCoverSelected(coverInput)" />
+      @if (coverPreviewUrl()) {
+        <img class="cover-preview" [src]="coverPreviewUrl()" alt="" />
+      }
+    </fieldset>
+
     <fieldset>
       <legend>{{ 'library.form.isbn' | transloco }} / {{ 'library.form.publisher' | transloco }}</legend>
 

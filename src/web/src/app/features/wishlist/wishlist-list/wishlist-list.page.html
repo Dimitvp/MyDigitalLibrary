@@ -1,0 +1,31 @@
+<div class="wishlist-list">
+  <header>
+    <h1>{{ 'wishlist.list.title' | transloco }}</h1>
+    <a routerLink="/wishlist/add" class="add-button">{{ 'wishlist.list.add' | transloco }}</a>
+  </header>
+
+  @if (listResource.isLoading()) {
+    <p class="status-text">{{ 'common.loading' | transloco }}</p>
+  } @else if (listResource.value().length === 0) {
+    <p class="empty">{{ 'wishlist.list.empty' | transloco }}</p>
+  } @else {
+    <ul class="items">
+      @for (entry of listResource.value(); track entry.id) {
+        <li>
+          <div class="info">
+            <span class="title">{{ entry.workTitle }}</span>
+            <span class="authors">{{ entry.authorNames.join(', ') }}</span>
+            <span class="meta-row">
+              <span class="format">{{ 'library.format.' + entry.desiredFormat | transloco }}</span>
+              <span class="priority">{{ 'wishlist.list.priority' | transloco }}: {{ entry.priority }}</span>
+              <span class="added">{{ 'wishlist.list.addedOn' | transloco }}: {{ entry.addedOn }}</span>
+            </span>
+            @if (entry.note) {
+              <span class="note">{{ entry.note }}</span>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>

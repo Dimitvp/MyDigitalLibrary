@@ -12,9 +12,13 @@
 > с ежедневно фоново обновяване (Етап 8) и Етап 9 — заемане на книги,
 > цели за четене, експорт (JSON + CSV), статистики, откриване на дубликати,
 > CSV импорт от Goodreads/Calibre и full-text search (PostgreSQL `tsvector`
-> + GIN, `simple` конфигурация) — са готови (само бекенд, без Angular
-> екрани от Етап 6 нататък). Планът (секции 0-12) е изпълнен изцяло;
-> баркод скенер и nginx production hardening остават извън обхвата
+> + GIN, `simple` конфигурация) — са готови. Планът (секции 0-12) е изпълнен
+> изцяло; баркод скенер и nginx production hardening остават извън обхвата
+> (виж бележката по-долу). След Етап 9 (виж
+> [.claude/history](.claude/history/2026-09-12-1026-library-import-catalog-reading-wishlist-covers.md)):
+> Angular екраните вече покриват и четене (старт/финал с дати), wishlist
+> (списък + добавяне), категории по жанр/език и качване/смяна на корица на
+> изданието — не само библиотеката/импорта от Етап 5-6.
 > (виж `docs/PLAN.md` т. 13; nginx production build е скициран, но не
 > е формален план-етап — виж бележката преди "## CI" по-долу).
 
@@ -69,7 +73,7 @@ npm start
 ```
 
 `npm start` (`ng serve`) обслужва Angular dev server-а на `http://localhost:4200`
-и прокси-ва `/api`/`/health` към `http://localhost:8081` (виж `proxy.conf.json`)
+и прокси-ва `/api`/`/health`/`/covers` към `http://localhost:8081` (виж `proxy.conf.json`)
 — затова API-то (`docker compose up -d` или `dotnet run`) трябва да работи
 паралелно, за да работят вход/списък/детайли/добавяне в браузъра. Вход с
 seed admin-а (`SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` от `.env`).
@@ -96,8 +100,11 @@ API-то (виж [docs/PLAN.md](docs/PLAN.md) т. 4/4.1 за пълния кон
 POST        /api/v1/auth/login, /api/v1/auth/logout
 GET         /api/v1/auth/me, /api/v1/auth/antiforgery
 GET/POST    /api/v1/works, /api/v1/works/{id}, /api/v1/works/{id}/editions
+PUT         /api/v1/works/{id}   # title/description/genreNames — resolve-or-create по име, като авторите
 PUT         /api/v1/works/{id}/rating, /api/v1/works/{id}/review   # upsert; виж GET /works/{id} за myRating/myReview
+GET         /api/v1/genres
 GET/PUT     /api/v1/editions/{id}
+POST        /api/v1/editions/{id}/cover   # multipart/form-data, поле "file" — качва/сменя корицата ръчно
 GET/POST    /api/v1/library-items, /api/v1/library-items/{id}
 PATCH       /api/v1/library-items/{id}/location, /status
 GET/POST    /api/v1/wishlist, /api/v1/wishlist/{id}/fulfill

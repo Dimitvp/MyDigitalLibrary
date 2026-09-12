@@ -5,6 +5,7 @@ export type BookFormat = 'Physical' | 'Ebook' | 'Audiobook';
 export type CoverType = 'Unknown' | 'Hardcover' | 'Paperback';
 export type OwnershipStatus = 'Owned' | 'Borrowed' | 'LentOut' | 'Sold' | 'GivenAway';
 export type AcquisitionMethod = 'Bought' | 'Gift' | 'Borrowed' | 'Inherited' | 'Downloaded';
+export type ReadingStatus = 'Reading' | 'Finished' | 'Abandoned' | 'OnHold';
 
 export interface Money {
   amount: number;
@@ -36,6 +37,52 @@ export interface LibraryItem {
   workTitle: string;
   authorNames: readonly string[];
   coverImageUrl: string | null;
+  readingStatus: ReadingStatus | null;
+  readingStartedOn: string | null; // yyyy-MM-dd
+  readingEndedOn: string | null; // yyyy-MM-dd
+  language: string | null;
+  genreNames: readonly string[];
+  workId: string;
+}
+
+export interface Genre {
+  id: string;
+  name: string;
+}
+
+export interface WorkDetail {
+  id: string;
+  title: string;
+  originalTitle: string | null;
+  description: string | null;
+  firstPublicationYear: number | null;
+  seriesId: string | null;
+  seriesPosition: number | null;
+  authors: readonly { id: string; fullName: string }[];
+  myRating: number | null;
+  myReview: string | null;
+  genreNames: readonly string[];
+}
+
+export interface ProgressEntry {
+  id: string;
+  recordedAt: string;
+  kind: 'page' | 'percent' | 'timestamp';
+  page: number | null;
+  percent: number | null;
+  positionMinutes: number | null;
+}
+
+export interface ReadingSessionInfo {
+  id: string;
+  userId: string;
+  libraryItemId: string;
+  format: BookFormat;
+  startedOn: string; // yyyy-MM-dd
+  status: ReadingStatus;
+  endedOn: string | null;
+  abandonReason: string | null;
+  progress: readonly ProgressEntry[];
 }
 
 export interface CreateWorkInput {
@@ -46,6 +93,15 @@ export interface CreateWorkInput {
   authorNames: readonly string[] | null;
   seriesName: string | null;
   seriesPosition: number | null;
+  genreNames: readonly string[] | null;
+}
+
+export interface UpdateWorkRequest {
+  title: string;
+  originalTitle: string | null;
+  description: string | null;
+  firstPublicationYear: number | null;
+  genreNames: readonly string[] | null;
 }
 
 export interface NestedEditionInput {
@@ -118,6 +174,16 @@ export interface WishlistEntry {
   authorNames: readonly string[];
 }
 
+export interface CreateWishlistEntryRequest {
+  workId: string | null;
+  work: CreateWorkInput | null;
+  desiredFormat: BookFormat;
+  priority: number;
+  preferredEditionId: string | null;
+  maxPrice: Money | null;
+  note: string | null;
+}
+
 export interface BookMetadataCandidate {
   providerKey: string;
   title: string | null;
@@ -150,6 +216,23 @@ export interface PagedResult<T> {
   page: number;
   pageSize: number;
   totalCount: number;
+}
+
+export interface AuthorBookCount {
+  authorName: string;
+  count: number;
+}
+
+export interface StatisticsDto {
+  year: number;
+  totalLibraryItems: number;
+  byFormat: Record<string, number>;
+  byStatus: Record<string, number>;
+  booksFinishedThisYear: number;
+  pagesReadThisYear: number;
+  currentlyReadingCount: number;
+  averageRating: number | null;
+  topAuthors: readonly AuthorBookCount[];
 }
 
 export interface ProblemDetails {

@@ -8,5 +8,10 @@
     "target": "http://localhost:8081",
     "secure": false,
     "changeOrigin": true
+  },
+  "/covers": {
+    "target": "http://localhost:8081",
+    "secure": false,
+    "changeOrigin": true
   }
 }

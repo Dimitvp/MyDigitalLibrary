@@ -34,7 +34,7 @@ public sealed class WorkService(IApplicationDbContext db, BookCatalogService cat
             .Skip((normalizedPage - 1) * normalizedPageSize)
             .Take(normalizedPageSize)
             .Select(w => new WorkRow(w.Id, w.Title, w.OriginalTitle, w.Description, w.FirstPublicationYear,
-                w.SeriesId, w.PositionInSeries, w.Authors.Select(a => a.AuthorId).ToList()))
+                w.SeriesId, w.PositionInSeries, w.Authors.Select(a => a.AuthorId).ToList(), w.GenreIds.ToList()))
             .ToListAsync(ct);
 
         var authorNames = await ResolveAuthorNamesAsync(rows, ct);
@@ -69,8 +69,11 @@ public sealed class WorkService(IApplicationDbContext db, BookCatalogService cat
             .Select(r => r.Text)
             .FirstOrDefaultAsync(ct);
 
+        var genreNames = await ResolveGenreNamesAsync(row.GenreIds, ct);
+
         return new WorkDetailDto(row.Id, row.Title, row.OriginalTitle, row.Description, row.FirstPublicationYear,
-            row.SeriesId, row.PositionInSeries?.Value, authors, myRating, myReview);
+            row.SeriesId, row.PositionInSeries?.Value, authors, myRating, myReview,
+            row.GenreIds.Select(gid => genreNames.GetValueOrDefault(gid, "?")).ToList());
     }
 
     /// <summary>Upsert by (UserId, WorkId) — one rating per user per work (plan section 7's unique index).</summary>
@@ -122,6 +125,9 @@ public sealed class WorkService(IApplicationDbContext db, BookCatalogService cat
         work.UpdateDetails(request.Title, request.OriginalTitle, request.Description, request.FirstPublicationYear);
         work.MarkFieldsOverridden(Work.Fields.Title, Work.Fields.OriginalTitle, Work.Fields.Description, Work.Fields.FirstPublicationYear);
 
+        if (request.GenreNames is not null)
+            await catalog.SetGenresAsync(work, request.GenreNames, ct);
+
         await db.SaveChangesAsync(ct);
     }
 
@@ -164,7 +170,19 @@ public sealed class WorkService(IApplicationDbContext db, BookCatalogService cat
 
     private static IQueryable<WorkRow> Project(IQueryable<Domain.Catalog.Work> source) => source
         .Select(w => new WorkRow(w.Id, w.Title, w.OriginalTitle, w.Description, w.FirstPublicationYear,
-            w.SeriesId, w.PositionInSeries, w.Authors.Select(a => a.AuthorId).ToList()));
+            w.SeriesId, w.PositionInSeries, w.Authors.Select(a => a.AuthorId).ToList(), w.GenreIds.ToList()));
+
+    private async Task<Dictionary<Guid, string>> ResolveGenreNamesAsync(IEnumerable<Guid> genreIds, CancellationToken ct)
+    {
+        var ids = genreIds.Distinct().ToList();
+        if (ids.Count == 0)
+            return [];
+
+        return await db.Genres.AsNoTracking()
+            .Where(g => ids.Contains(g.Id))
+            .Select(g => new { g.Id, g.Name })
+            .ToDictionaryAsync(g => g.Id, g => g.Name, ct);
+    }
 }
 
 internal sealed record WorkRow(
@@ -175,4 +193,5 @@ internal sealed record WorkRow(
     int? FirstPublicationYear,
     Guid? SeriesId,
     SeriesPosition? PositionInSeries,
-    List<Guid> AuthorIds);
+    List<Guid> AuthorIds,
+    List<Guid> GenreIds);

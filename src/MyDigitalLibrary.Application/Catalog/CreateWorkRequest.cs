@@ -12,4 +12,5 @@ public sealed record CreateWorkRequest(
     int? FirstPublicationYear,
     IReadOnlyList<string>? AuthorNames,
     string? SeriesName,
-    decimal? SeriesPosition);
+    decimal? SeriesPosition,
+    IReadOnlyList<string>? GenreNames = null);
