@@ -24,7 +24,12 @@
       "search": "Search by title...",
       "totalBooks": "Total books",
       "noCover": "No cover",
-      "currentlyReading": "Currently reading"
+      "currentlyReading": "Currently reading",
+      "filterAllReading": "All (read/unread)",
+      "filterAllGenres": "All categories",
+      "sortDefault": "Default order",
+      "sortAcquiredOn": "Date added",
+      "sortTitle": "Title"
     },
     "detail": {
       "title": "Details",
@@ -36,7 +41,19 @@
       "noteSave": "Save note",
       "noteSaved": "Note saved",
       "changeCover": "Change cover",
-      "saveGenres": "Save category"
+      "saveGenres": "Save category",
+      "edit": "Edit"
+    },
+    "genres": {
+      "addPlaceholder": "New category...",
+      "add": "Add",
+      "rename": "Rename",
+      "delete": "Delete",
+      "deleteConfirm": "Are you sure you want to delete this category?",
+      "save": "Save",
+      "cancel": "Cancel",
+      "namePlaceholder": "Name (BG)",
+      "nameEnPlaceholder": "Name (EN)"
     },
     "reading": {
       "notStarted": "Unread",
@@ -51,7 +68,10 @@
     },
     "form": {
       "addTitle": "Add a book",
+      "editTitle": "Edit book",
       "workTitle": "Title",
+      "originalTitle": "Original title",
+      "description": "Description",
       "authorNames": "Author(s) (comma-separated)",
       "format": "Format",
       "language": "Language",
@@ -60,6 +80,10 @@
       "status": "Status",
       "isbn": "ISBN",
       "publisher": "Publisher",
+      "translator": "Translator",
+      "narrator": "Narrator",
+      "durationMinutes": "Duration (minutes)",
+      "coverType": "Cover type",
       "publicationYear": "Publication year",
       "pageCount": "Page count",
       "acquiredOn": "Acquired on",
@@ -69,12 +93,20 @@
       "source": "Source",
       "save": "Save",
       "cancel": "Cancel",
-      "titleRequired": "Title is required."
+      "titleRequired": "Title is required.",
+      "workSection": "Work",
+      "editionSection": "Edition",
+      "acquisitionSection": "Acquisition"
     },
     "format": {
       "Physical": "Physical",
       "Ebook": "Ebook",
       "Audiobook": "Audiobook"
+    },
+    "coverType": {
+      "Unknown": "Unknown",
+      "Hardcover": "Hardcover",
+      "Paperback": "Paperback"
     },
     "status": {
       "Owned": "Owned",
@@ -165,6 +197,10 @@
       "not_found": "Entry not found.",
       "invalid_work_reference": "Provide either workId or work, but not both.",
       "already_fulfilled": "This wishlist entry has already been fulfilled."
+    },
+    "genre": {
+      "not_found": "Category not found.",
+      "name_required": "Name is required."
     },
     "antiforgery": {
       "invalid_token": "Your session expired. Please reload the page."

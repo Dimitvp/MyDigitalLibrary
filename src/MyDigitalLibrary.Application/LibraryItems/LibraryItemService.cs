@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using MyDigitalLibrary.Application.Abstractions;
 using MyDigitalLibrary.Application.Catalog;
@@ -11,8 +13,8 @@ namespace MyDigitalLibrary.Application.LibraryItems;
 public sealed class LibraryItemService(IApplicationDbContext db, BookCatalogService catalog)
 {
     public async Task<PagedResult<LibraryItemDto>> ListAsync(
-        BookFormat? format, OwnershipStatus? status, Guid? shelfId, string? q, int? page, int? pageSize,
-        Guid userId, CancellationToken ct)
+        BookFormat? format, OwnershipStatus? status, Guid? shelfId, string? q, Guid? genreId, string? readingStatus,
+        string? sortBy, string? sortDir, int? page, int? pageSize, Guid userId, CancellationToken ct)
     {
         var (normalizedPage, normalizedPageSize) = PageRequest.Normalize(page, pageSize);
 
@@ -27,11 +29,51 @@ public sealed class LibraryItemService(IApplicationDbContext db, BookCatalogServ
         if (shelfId is { } sId)
             query = query.Where(li => db.Shelves.Any(sh => sh.Id == sId && sh.Items.Any(i => i.LibraryItemId == li.Id)));
 
+        // {EditionId, WorkId, Title, Authors, GenreIds} — the one join every
+        // text-search/title-sort/genre-filter path below needs, so it's built
+        // once rather than per-concern.
+        var editionsByWork = db.Editions.Join(db.Works, e => e.WorkId, w => w.Id,
+            (e, w) => new { EditionId = e.Id, w.Title, w.Authors, w.GenreIds });
+
         if (!string.IsNullOrWhiteSpace(q))
         {
-            var editionsByWorkTitle = db.Editions.Join(db.Works, e => e.WorkId, w => w.Id, (e, w) => new { e.Id, w.Title });
-            query = query.Where(li => editionsByWorkTitle.Any(x => x.Id == li.EditionId && x.Title.Contains(q)));
+            // Matches the start of a word, not an arbitrary substring — "мат"
+            // should find "Мате"/"материал" but not the middle of "фермата".
+            // \m is Postgres's "start of word" regex anchor; (?i) makes it
+            // case-insensitive so "габо" still matches "Габор".
+            var pattern = TextSearch.WordPrefixPattern(q);
+            var matchingAuthorIds = db.Authors.AsNoTracking().Where(a => Regex.IsMatch(a.FullName, pattern, RegexOptions.IgnoreCase)).Select(a => a.Id);
+
+            query = query.Where(li => editionsByWork.Any(x => x.EditionId == li.EditionId &&
+                (Regex.IsMatch(x.Title, pattern, RegexOptions.IgnoreCase) || x.Authors.Any(wa => matchingAuthorIds.Contains(wa.AuthorId)))));
         }
+
+        if (genreId is { } gId)
+            query = query.Where(li => editionsByWork.Any(x => x.EditionId == li.EditionId && x.GenreIds.Contains(gId)));
+
+        if (!string.IsNullOrWhiteSpace(readingStatus))
+        {
+            if (string.Equals(readingStatus, "NotStarted", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.Where(li => !db.ReadingSessions.Any(rs => rs.LibraryItemId == li.Id));
+            }
+            else if (Enum.TryParse<ReadingStatus>(readingStatus, ignoreCase: true, out var parsedStatus))
+            {
+                query = query.Where(li =>
+                    db.ReadingSessions.Where(rs => rs.LibraryItemId == li.Id)
+                        .OrderByDescending(rs => rs.StartedOn)
+                        .Select(rs => rs.Status)
+                        .FirstOrDefault() == parsedStatus);
+            }
+        }
+
+        var descending = string.Equals(sortDir, "asc", StringComparison.OrdinalIgnoreCase) is false;
+        query = sortBy?.ToLowerInvariant() switch
+        {
+            "title" => Sort(query.Join(editionsByWork, li => li.EditionId, x => x.EditionId, (li, x) => new { li, x.Title }),
+                pair => pair.Title, descending).Select(pair => pair.li),
+            _ => Sort(query, li => li.Acquisition.AcquiredOn, descending),
+        };
 
         var totalCount = await query.CountAsync(ct);
 
@@ -147,6 +189,10 @@ public sealed class LibraryItemService(IApplicationDbContext db, BookCatalogServ
         item.ChangeStatus(status);
         await db.SaveChangesAsync(ct);
     }
+
+    private static IQueryable<T> Sort<T, TKey>(IQueryable<T> source, Expression<Func<T, TKey>> keySelector, bool descending) =>
+        descending ? source.OrderByDescending(keySelector) : source.OrderBy(keySelector);
+
 
     private static readonly EditionDisplayInfo EmptyDisplayInfo = new("?", [], null, null, []);
 

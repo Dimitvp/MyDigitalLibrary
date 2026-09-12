@@ -24,7 +24,12 @@
       "search": "Търсене по заглавие...",
       "totalBooks": "Общо книги",
       "noCover": "Без корица",
-      "currentlyReading": "В момента чета"
+      "currentlyReading": "В момента чета",
+      "filterAllReading": "Всички (прочетени/непрочетени)",
+      "filterAllGenres": "Всички категории",
+      "sortDefault": "Подредба по подразбиране",
+      "sortAcquiredOn": "Дата на добавяне",
+      "sortTitle": "Заглавие"
     },
     "detail": {
       "title": "Детайли",
@@ -36,7 +41,19 @@
       "noteSave": "Запази бележката",
       "noteSaved": "Бележката е запазена",
       "changeCover": "Смени корицата",
-      "saveGenres": "Запази категорията"
+      "saveGenres": "Запази категорията",
+      "edit": "Редактирай"
+    },
+    "genres": {
+      "addPlaceholder": "Нова категория...",
+      "add": "Добави",
+      "rename": "Преименувай",
+      "delete": "Изтрий",
+      "deleteConfirm": "Сигурен ли си, че искаш да изтриеш тази категория?",
+      "save": "Запази",
+      "cancel": "Отказ",
+      "namePlaceholder": "Име (BG)",
+      "nameEnPlaceholder": "Име (EN)"
     },
     "reading": {
       "notStarted": "Непрочетена",
@@ -51,7 +68,10 @@
     },
     "form": {
       "addTitle": "Добавяне на книга",
+      "editTitle": "Редактиране на книга",
       "workTitle": "Заглавие",
+      "originalTitle": "Оригинално заглавие",
+      "description": "Описание",
       "authorNames": "Автор(и) (разделени със запетая)",
       "format": "Формат",
       "language": "Език",
@@ -60,6 +80,10 @@
       "status": "Статус",
       "isbn": "ISBN",
       "publisher": "Издателство",
+      "translator": "Преводач",
+      "narrator": "Разказвач",
+      "durationMinutes": "Продължителност (минути)",
+      "coverType": "Тип корица",
       "publicationYear": "Година на издаване",
       "pageCount": "Брой страници",
       "acquiredOn": "Дата на придобиване",
@@ -69,12 +93,20 @@
       "source": "Източник",
       "save": "Запази",
       "cancel": "Отказ",
-      "titleRequired": "Заглавието е задължително."
+      "titleRequired": "Заглавието е задължително.",
+      "workSection": "Произведение",
+      "editionSection": "Издание",
+      "acquisitionSection": "Придобиване"
     },
     "format": {
       "Physical": "Хартиена",
       "Ebook": "Електронна",
       "Audiobook": "Аудио"
+    },
+    "coverType": {
+      "Unknown": "Неизвестен",
+      "Hardcover": "Твърди корици",
+      "Paperback": "Меки корици"
     },
     "status": {
       "Owned": "Притежавана",
@@ -165,6 +197,10 @@
       "not_found": "Записът не е намерен.",
       "invalid_work_reference": "Подай или workId, или work, но не и двете.",
       "already_fulfilled": "Това желание вече е изпълнено."
+    },
+    "genre": {
+      "not_found": "Категорията не е намерена.",
+      "name_required": "Името е задължително."
     },
     "antiforgery": {
       "invalid_token": "Сесията е изтекла. Презареди страницата."

@@ -12,9 +12,10 @@ public static class LibraryItemEndpoints
         var group = app.MapGroup("/api/v1/library-items").WithTags("LibraryItems").RequireAuthorization();
 
         group.MapGet("/", async (
-            BookFormat? format, OwnershipStatus? status, Guid? shelfId, string? q, int? page, int? pageSize,
+            BookFormat? format, OwnershipStatus? status, Guid? shelfId, string? q, Guid? genreId, string? readingStatus,
+            string? sortBy, string? sortDir, int? page, int? pageSize,
             LibraryItemService service, ICurrentUser currentUser, CancellationToken ct)
-            => Results.Ok(await service.ListAsync(format, status, shelfId, q, page, pageSize, currentUser.UserId, ct)));
+            => Results.Ok(await service.ListAsync(format, status, shelfId, q, genreId, readingStatus, sortBy, sortDir, page, pageSize, currentUser.UserId, ct)));
 
         group.MapPost("/", async (CreateLibraryItemRequest request, LibraryItemService service, ICurrentUser currentUser, CancellationToken ct) =>
         {

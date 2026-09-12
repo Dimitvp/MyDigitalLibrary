@@ -48,6 +48,12 @@ export interface LibraryItem {
 export interface Genre {
   id: string;
   name: string;
+  nameEn: string | null;
+}
+
+export interface AuthorSummary {
+  id: string;
+  fullName: string;
 }
 
 export interface WorkDetail {
@@ -58,7 +64,7 @@ export interface WorkDetail {
   firstPublicationYear: number | null;
   seriesId: string | null;
   seriesPosition: number | null;
-  authors: readonly { id: string; fullName: string }[];
+  authors: readonly AuthorSummary[];
   myRating: number | null;
   myReview: string | null;
   genreNames: readonly string[];
@@ -102,6 +108,7 @@ export interface UpdateWorkRequest {
   description: string | null;
   firstPublicationYear: number | null;
   genreNames: readonly string[] | null;
+  authorNames: readonly string[] | null;
 }
 
 export interface NestedEditionInput {
@@ -115,6 +122,18 @@ export interface NestedEditionInput {
   narrator: string | null;
   durationMinutes: number | null;
   coverUrl: string | null;
+}
+
+export interface UpdateEditionRequest {
+  isbn13: string | null;
+  publisher: string | null;
+  language: string | null;
+  translator: string | null;
+  publicationYear: number | null;
+  pageCount: number | null;
+  coverType: CoverType;
+  narrator: string | null;
+  durationMinutes: number | null;
 }
 
 export interface CreateLibraryItemRequest {
@@ -141,22 +160,6 @@ export interface Edition {
   coverImageUrl: string | null;
   narrator: string | null;
   durationMinutes: number | null;
-}
-
-export interface AuthorSummary {
-  id: string;
-  fullName: string;
-}
-
-export interface WorkDetail {
-  id: string;
-  title: string;
-  originalTitle: string | null;
-  description: string | null;
-  firstPublicationYear: number | null;
-  seriesId: string | null;
-  seriesPosition: number | null;
-  authors: readonly AuthorSummary[];
 }
 
 export interface WishlistEntry {

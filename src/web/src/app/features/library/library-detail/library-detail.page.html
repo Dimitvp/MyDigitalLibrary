@@ -105,18 +105,7 @@
 
         <div class="genre-section">
           <label>{{ 'library.form.genres' | transloco }}</label>
-          <div class="genre-options">
-            @for (genre of genresResource.value(); track genre.id) {
-              <label class="checkbox">
-                <input
-                  type="checkbox"
-                  [checked]="selectedGenres().includes(genre.name)"
-                  (change)="toggleGenre(genre.name, $any($event.target).checked)"
-                />
-                <span>{{ genre.name }}</span>
-              </label>
-            }
-          </div>
+          <app-genre-picker [selected]="selectedGenres()" (selectedChange)="onGenresChange($event)" />
           <div class="note-actions">
             <button type="button" (click)="saveGenres()" [disabled]="savingGenres()">
               {{ 'library.detail.saveGenres' | transloco }}
@@ -127,9 +116,12 @@
           </div>
         </div>
 
-        <button type="button" class="delete" (click)="delete()" [disabled]="deleting()">
-          {{ 'library.detail.delete' | transloco }}
-        </button>
+        <div class="detail-actions">
+          <a class="edit" [routerLink]="['/library', item.id, 'edit']">{{ 'library.detail.edit' | transloco }}</a>
+          <button type="button" class="delete" (click)="delete()" [disabled]="deleting()">
+            {{ 'library.detail.delete' | transloco }}
+          </button>
+        </div>
       </div>
     </div>
   </div>

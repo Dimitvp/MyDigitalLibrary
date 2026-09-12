@@ -31,18 +31,7 @@
 
     <fieldset>
       <legend>{{ 'library.form.genres' | transloco }}</legend>
-      <div class="genre-options">
-        @for (genre of genresResource.value(); track genre.id) {
-          <label class="checkbox">
-            <input
-              type="checkbox"
-              [checked]="selectedGenres().includes(genre.name)"
-              (change)="toggleGenre(genre.name, $any($event.target).checked)"
-            />
-            <span>{{ genre.name }}</span>
-          </label>
-        }
-      </div>
+      <app-genre-picker [(selected)]="selectedGenres" />
     </fieldset>
 
     <fieldset>

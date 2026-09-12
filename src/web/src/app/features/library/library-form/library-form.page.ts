@@ -1,11 +1,11 @@
-import { httpResource } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CatalogApiService } from '../../../core/api/catalog-api.service';
-import type { AcquisitionMethod, BookFormat, CreateLibraryItemRequest, Genre } from '../../../core/api/models';
+import type { AcquisitionMethod, BookFormat, CreateLibraryItemRequest } from '../../../core/api/models';
+import { GenrePickerComponent } from '../../../shared/ui/genre-picker/genre-picker.component';
 import { LibraryApiService } from '../library-api.service';
 
 interface LibraryFormControls {
@@ -26,7 +26,7 @@ interface LibraryFormControls {
 
 @Component({
   selector: 'app-library-form-page',
-  imports: [ReactiveFormsModule, TranslocoPipe],
+  imports: [ReactiveFormsModule, TranslocoPipe, GenrePickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './library-form.page.html',
   styleUrl: './library-form.page.scss',
@@ -40,7 +40,6 @@ export class LibraryFormPage {
   protected readonly formats: readonly BookFormat[] = ['Physical', 'Ebook', 'Audiobook'];
   protected readonly acquisitionMethods: readonly AcquisitionMethod[] = ['Bought', 'Gift', 'Borrowed', 'Inherited', 'Downloaded'];
 
-  protected readonly genresResource = httpResource<Genre[]>(() => '/api/v1/genres', { defaultValue: [] });
   protected readonly selectedGenres = signal<readonly string[]>([]);
 
   protected readonly coverFile = signal<File | null>(null);
@@ -63,10 +62,6 @@ export class LibraryFormPage {
     currencyCode: new FormControl('BGN', { nonNullable: true }),
     source: new FormControl('', { nonNullable: true }),
   });
-
-  protected toggleGenre(name: string, checked: boolean): void {
-    this.selectedGenres.update((current) => (checked ? [...current, name] : current.filter((g) => g !== name)));
-  }
 
   protected onCoverSelected(input: HTMLInputElement): void {
     const file = input.files?.[0] ?? null;

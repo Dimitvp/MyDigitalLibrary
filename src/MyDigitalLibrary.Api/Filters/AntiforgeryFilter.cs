@@ -21,7 +21,8 @@ public sealed class AntiforgeryFilter(IAntiforgery antiforgery) : IEndpointFilte
             return Results.Problem(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "antiforgery.invalid_token",
-                detail: ex.Message);
+                detail: ex.Message,
+                extensions: new Dictionary<string, object?> { ["errorCode"] = "antiforgery.invalid_token" });
         }
 
         return await next(context);

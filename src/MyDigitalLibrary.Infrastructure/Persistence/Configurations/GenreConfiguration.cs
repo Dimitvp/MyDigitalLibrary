@@ -10,6 +10,7 @@ public sealed class GenreConfiguration : IEntityTypeConfiguration<Genre>
     {
         builder.HasKey(g => g.Id);
         builder.Property(g => g.Name).IsRequired().HasMaxLength(200);
+        builder.Property(g => g.NameEn).HasMaxLength(200);
 
         builder.HasOne<Genre>()
             .WithMany()

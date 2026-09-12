@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using MyDigitalLibrary.Application.Abstractions;
 using MyDigitalLibrary.Application.Catalog;
@@ -19,7 +20,10 @@ public sealed class WorkService(IApplicationDbContext db, BookCatalogService cat
         var query = db.Works.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(q))
-            query = query.Where(w => w.Title.Contains(q));
+        {
+            var pattern = TextSearch.WordPrefixPattern(q);
+            query = query.Where(w => Regex.IsMatch(w.Title, pattern, RegexOptions.IgnoreCase));
+        }
 
         if (authorId is { } aId)
             query = query.Where(w => w.Authors.Any(a => a.AuthorId == aId));
@@ -127,6 +131,9 @@ public sealed class WorkService(IApplicationDbContext db, BookCatalogService cat
 
         if (request.GenreNames is not null)
             await catalog.SetGenresAsync(work, request.GenreNames, ct);
+
+        if (request.AuthorNames is not null)
+            await catalog.SetAuthorsAsync(work, request.AuthorNames, ct);
 
         await db.SaveChangesAsync(ct);
     }

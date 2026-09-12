@@ -1,0 +1,66 @@
+<div class="genre-picker">
+  <div class="genre-options">
+    @for (genre of genresResource.value(); track genre.id) {
+      <div class="genre-row">
+        @if (renamingId() === genre.id) {
+          <input
+            type="text"
+            class="rename-input"
+            #renameInput
+            [placeholder]="'library.genres.namePlaceholder' | transloco"
+            [value]="renameDraft()"
+            (input)="renameDraft.set(renameInput.value)"
+            (keydown.enter)="confirmRename(genre)"
+            (keydown.escape)="cancelRename()"
+          />
+          <input
+            type="text"
+            class="rename-input"
+            #renameInputEn
+            [placeholder]="'library.genres.nameEnPlaceholder' | transloco"
+            [value]="renameDraftEn()"
+            (input)="renameDraftEn.set(renameInputEn.value)"
+            (keydown.enter)="confirmRename(genre)"
+            (keydown.escape)="cancelRename()"
+          />
+          <button type="button" class="icon-btn" (click)="confirmRename(genre)" [title]="'library.genres.save' | transloco">✓</button>
+          <button type="button" class="icon-btn" (click)="cancelRename()" [title]="'library.genres.cancel' | transloco">✕</button>
+        } @else {
+          <label class="checkbox">
+            <input
+              type="checkbox"
+              [checked]="selected().includes(genre.name)"
+              (change)="toggle(genre.name, $any($event.target).checked)"
+            />
+            <span>{{ label(genre) }}</span>
+          </label>
+          <button type="button" class="icon-btn" (click)="startRename(genre)" [title]="'library.genres.rename' | transloco">✎</button>
+          <button type="button" class="icon-btn danger" (click)="deleteGenre(genre)" [title]="'library.genres.delete' | transloco">🗑</button>
+        }
+      </div>
+    }
+
+    @for (name of selected(); track name) {
+      @if (!isKnownGenre(name)) {
+        <div class="genre-row pending">
+          <label class="checkbox">
+            <input type="checkbox" checked (change)="toggle(name, $any($event.target).checked)" />
+            <span>{{ name }}</span>
+          </label>
+        </div>
+      }
+    }
+  </div>
+
+  <div class="add-genre">
+    <input
+      type="text"
+      #newGenreInput
+      [placeholder]="'library.genres.addPlaceholder' | transloco"
+      [value]="newGenreName()"
+      (input)="newGenreName.set(newGenreInput.value)"
+      (keydown.enter)="addNew()"
+    />
+    <button type="button" (click)="addNew()">{{ 'library.genres.add' | transloco }}</button>
+  </div>
+</div>

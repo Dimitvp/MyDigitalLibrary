@@ -1,0 +1,174 @@
+<div class="library-edit">
+  @if (itemResource.isLoading()) {
+    <p class="status-text">{{ 'common.loading' | transloco }}</p>
+  } @else if (itemResource.value(); as item) {
+    <a [routerLink]="['/library', item.id]">← {{ 'library.detail.back' | transloco }}</a>
+    <h1>{{ 'library.form.editTitle' | transloco }}</h1>
+
+    <section class="edit-section" [formGroup]="workForm">
+      <h2>{{ 'library.form.workSection' | transloco }}</h2>
+
+      <label>
+        <span>{{ 'library.form.workTitle' | transloco }}</span>
+        <input type="text" formControlName="title" required />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.originalTitle' | transloco }}</span>
+        <input type="text" formControlName="originalTitle" />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.authorNames' | transloco }}</span>
+        <input type="text" formControlName="authorNames" />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.description' | transloco }}</span>
+        <textarea rows="4" formControlName="description"></textarea>
+      </label>
+
+      <label>
+        <span>{{ 'library.form.publicationYear' | transloco }}</span>
+        <input type="number" formControlName="firstPublicationYear" />
+      </label>
+
+      <div class="genre-field">
+        <span>{{ 'library.form.genres' | transloco }}</span>
+        <app-genre-picker [selected]="selectedGenres()" (selectedChange)="onGenresChange($event)" />
+      </div>
+
+      <div class="section-actions">
+        <button type="button" (click)="saveWork()" [disabled]="workForm.invalid || savingWork()">
+          {{ 'library.form.save' | transloco }}
+        </button>
+        @if (workSaved()) {
+          <span class="saved">{{ 'library.detail.noteSaved' | transloco }}</span>
+        }
+      </div>
+    </section>
+
+    <section class="edit-section" [formGroup]="editionForm">
+      <h2>{{ 'library.form.editionSection' | transloco }}</h2>
+
+      <label>
+        <span>{{ 'library.form.isbn' | transloco }}</span>
+        <input type="text" formControlName="isbn13" />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.publisher' | transloco }}</span>
+        <input type="text" formControlName="publisher" />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.language' | transloco }}</span>
+        <input type="text" formControlName="language" />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.translator' | transloco }}</span>
+        <input type="text" formControlName="translator" />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.publicationYear' | transloco }}</span>
+        <input type="number" formControlName="publicationYear" />
+      </label>
+
+      @if (format() !== 'Audiobook') {
+        <label>
+          <span>{{ 'library.form.pageCount' | transloco }}</span>
+          <input type="number" formControlName="pageCount" />
+        </label>
+      }
+
+      @if (format() === 'Physical') {
+        <label>
+          <span>{{ 'library.form.coverType' | transloco }}</span>
+          <select formControlName="coverType">
+            @for (type of coverTypes; track type) {
+              <option [value]="type">{{ 'library.coverType.' + type | transloco }}</option>
+            }
+          </select>
+        </label>
+      }
+
+      @if (format() === 'Audiobook') {
+        <label>
+          <span>{{ 'library.form.narrator' | transloco }}</span>
+          <input type="text" formControlName="narrator" />
+        </label>
+
+        <label>
+          <span>{{ 'library.form.durationMinutes' | transloco }}</span>
+          <input type="number" formControlName="durationMinutes" />
+        </label>
+      }
+
+      <div class="section-actions">
+        <button type="button" (click)="saveEdition()" [disabled]="savingEdition()">
+          {{ 'library.form.save' | transloco }}
+        </button>
+        @if (editionSaved()) {
+          <span class="saved">{{ 'library.detail.noteSaved' | transloco }}</span>
+        }
+      </div>
+    </section>
+
+    <section class="edit-section" [formGroup]="acquisitionForm">
+      <h2>{{ 'library.form.acquisitionSection' | transloco }}</h2>
+
+      <label>
+        <span>{{ 'library.form.status' | transloco }}</span>
+        <select formControlName="status">
+          @for (s of statuses; track s) {
+            <option [value]="s">{{ 'library.status.' + s | transloco }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        <span>{{ 'library.form.acquiredOn' | transloco }}</span>
+        <input type="date" formControlName="acquiredOn" required />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.acquisitionMethod' | transloco }}</span>
+        <select formControlName="acquisitionMethod">
+          @for (method of acquisitionMethods; track method) {
+            <option [value]="method">{{ 'library.acquisitionMethod.' + method | transloco }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        <span>{{ 'library.form.price' | transloco }}</span>
+        <input type="number" step="0.01" formControlName="priceAmount" />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.currency' | transloco }}</span>
+        <input type="text" formControlName="currencyCode" maxlength="3" />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.source' | transloco }}</span>
+        <input type="text" formControlName="source" />
+      </label>
+
+      <div class="section-actions">
+        <button type="button" (click)="saveAcquisition()" [disabled]="acquisitionForm.invalid || savingAcquisition()">
+          {{ 'library.form.save' | transloco }}
+        </button>
+        @if (acquisitionSaved()) {
+          <span class="saved">{{ 'library.detail.noteSaved' | transloco }}</span>
+        }
+      </div>
+    </section>
+
+    <div class="actions">
+      <button type="button" class="done" (click)="done()">{{ 'library.form.cancel' | transloco }}</button>
+    </div>
+  }
+</div>

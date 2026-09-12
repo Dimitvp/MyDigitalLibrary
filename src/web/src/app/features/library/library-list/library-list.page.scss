@@ -88,6 +88,42 @@
     }
   }
 
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+
+    select {
+      padding: 0.5rem 0.7rem;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink);
+      font: inherit;
+
+      &:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+    }
+
+    .sort-dir {
+      padding: 0.5rem 0.8rem;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink);
+      cursor: pointer;
+      font: inherit;
+      line-height: 1;
+
+      &:hover {
+        border-color: var(--accent);
+      }
+    }
+  }
+
   .status-text, .empty {
     color: var(--muted);
   }

@@ -10,6 +10,10 @@ export const libraryRoutes: Routes = [
     loadComponent: () => import('./library-form/library-form.page').then((m) => m.LibraryFormPage),
   },
   {
+    path: ':id/edit',
+    loadComponent: () => import('./library-edit/library-edit.page').then((m) => m.LibraryEditPage),
+  },
+  {
     path: ':id',
     loadComponent: () => import('./library-detail/library-detail.page').then((m) => m.LibraryDetailPage),
   },

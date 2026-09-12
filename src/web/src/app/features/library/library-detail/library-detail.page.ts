@@ -4,7 +4,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CatalogApiService } from '../../../core/api/catalog-api.service';
-import type { Genre, LibraryItem, ReadingStatus, WorkDetail } from '../../../core/api/models';
+import type { LibraryItem, ReadingStatus, WorkDetail } from '../../../core/api/models';
+import { GenrePickerComponent } from '../../../shared/ui/genre-picker/genre-picker.component';
 import { LibraryApiService } from '../library-api.service';
 import { ReadingApiService } from '../reading-api.service';
 
@@ -14,7 +15,7 @@ function today(): string {
 
 @Component({
   selector: 'app-library-detail-page',
-  imports: [RouterLink, TranslocoPipe],
+  imports: [RouterLink, TranslocoPipe, GenrePickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './library-detail.page.html',
   styleUrl: './library-detail.page.scss',
@@ -66,7 +67,6 @@ export class LibraryDetailPage {
     },
     { defaultValue: null },
   );
-  protected readonly genresResource = httpResource<Genre[]>(() => '/api/v1/genres', { defaultValue: [] });
   protected readonly selectedGenres = signal<readonly string[]>([]);
   protected readonly savingGenres = signal(false);
   protected readonly genresSaved = signal(false);
@@ -199,8 +199,8 @@ export class LibraryDetailPage {
       });
   }
 
-  protected toggleGenre(name: string, checked: boolean): void {
-    this.selectedGenres.update((current) => (checked ? [...current, name] : current.filter((g) => g !== name)));
+  protected onGenresChange(names: readonly string[]): void {
+    this.selectedGenres.set(names);
     this.genresSaved.set(false);
   }
 
@@ -216,6 +216,7 @@ export class LibraryDetailPage {
         description: work.description,
         firstPublicationYear: work.firstPublicationYear,
         genreNames: this.selectedGenres(),
+        authorNames: null,
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

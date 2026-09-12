@@ -17,7 +17,13 @@ public sealed record WorkDetailDto(
     string? MyReview,
     IReadOnlyList<string> GenreNames);
 
-public sealed record UpdateWorkRequest(string Title, string? OriginalTitle, string? Description, int? FirstPublicationYear, IReadOnlyList<string>? GenreNames = null);
+public sealed record UpdateWorkRequest(
+    string Title,
+    string? OriginalTitle,
+    string? Description,
+    int? FirstPublicationYear,
+    IReadOnlyList<string>? GenreNames = null,
+    IReadOnlyList<string>? AuthorNames = null);
 
 /// <summary>Score is 1..10 (plan section 14 Q1, answered during Stage 1 — see WorkRating.MinScore/MaxScore).</summary>
 public sealed record UpsertRatingRequest(int Score);

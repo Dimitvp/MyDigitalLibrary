@@ -54,6 +54,22 @@ public sealed class BookCatalogService(IApplicationDbContext db, ICoverDownloadQ
         return work;
     }
 
+    /// <summary>Replaces a work's author list by name, creating any that don't exist yet — same resolve-or-create pattern as SetGenresAsync. Always the Author role; co-authors/translators aren't editable via this path yet.</summary>
+    public async Task SetAuthorsAsync(Work work, IReadOnlyList<string>? authorNames, CancellationToken ct)
+    {
+        foreach (var existing in work.Authors.ToList())
+            work.RemoveAuthor(existing.AuthorId, existing.Role);
+
+        if (authorNames is not { Count: > 0 })
+            return;
+
+        foreach (var name in authorNames)
+        {
+            var author = await ResolveOrCreateAuthorAsync(name, ct);
+            work.AddAuthor(author.Id, WorkAuthorRole.Author);
+        }
+    }
+
     /// <summary>Replaces a work's genre set by name, creating any that don't exist yet — same resolve-or-create pattern as authors/series.</summary>
     public async Task SetGenresAsync(Work work, IReadOnlyList<string>? genreNames, CancellationToken ct)
     {
