@@ -17,7 +17,10 @@ public sealed record WishlistEntryDto(
     DateOnly AddedOn,
     bool IsFulfilled,
     string WorkTitle,
-    IReadOnlyList<string> AuthorNames);
+    IReadOnlyList<string> AuthorNames,
+    string? CoverImageUrl,
+    string? Language,
+    IReadOnlyList<string> GenreNames);
 
 /// <summary>oneOf: either WorkId (existing work) or Work (create a new one) — see plan section 4.1.</summary>
 public sealed record CreateWishlistEntryRequest(
@@ -33,9 +36,13 @@ public sealed record FulfillWishlistEntryRequest(Guid EditionId, AcquisitionDto 
 
 public static class WishlistEntryMapper
 {
-    public static WishlistEntryDto ToDto(DomainWishlistEntry entry, WorkDisplayInfo displayInfo) => new(
+    // editionInfo is null whenever the entry has no PreferredEditionId (or it
+    // doesn't resolve) — cover/language are edition-level, so they're simply
+    // absent until the user picks a preferred edition.
+    public static WishlistEntryDto ToDto(DomainWishlistEntry entry, WorkDisplayInfo displayInfo, EditionDisplayInfo? editionInfo) => new(
         entry.Id, entry.UserId, entry.WorkId, entry.PreferredEditionId, entry.DesiredFormat, entry.Priority,
         entry.MaxPrice is null ? null : new MoneyDto(entry.MaxPrice.Amount, entry.MaxPrice.CurrencyCode),
         entry.Note, entry.AddedOn, entry.IsFulfilled,
-        displayInfo.Title, displayInfo.AuthorNames);
+        displayInfo.Title, displayInfo.AuthorNames,
+        editionInfo?.CoverImageUrl, editionInfo?.Language, displayInfo.GenreNames);
 }

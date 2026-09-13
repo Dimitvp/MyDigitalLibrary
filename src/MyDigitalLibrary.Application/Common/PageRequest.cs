@@ -3,7 +3,7 @@ namespace MyDigitalLibrary.Application.Common;
 public static class PageRequest
 {
     private const int DefaultPageSize = 50;
-    private const int MaxPageSize = 200;
+    private const int MaxPageSize = 1000;
 
     public static (int Page, int PageSize) Normalize(int? page, int? pageSize)
     {

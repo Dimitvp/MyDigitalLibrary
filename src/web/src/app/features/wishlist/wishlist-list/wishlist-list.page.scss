@@ -1,14 +1,23 @@
 .wishlist-list {
-  max-width: 48rem;
+  max-width: 64rem;
   margin: 0 auto;
   padding: 2rem 1.25rem 3rem;
 
   header {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
     gap: 1rem;
     margin-bottom: 1.5rem;
+
+    .eyebrow {
+      margin: 0 0 0.2rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--leather);
+      font-weight: 600;
+    }
 
     h1 {
       margin: 0;
@@ -32,52 +41,151 @@
     color: var(--muted);
   }
 
+  .language-group {
+    margin-bottom: 2.5rem;
+
+    > h2 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin: 0 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--line);
+    }
+  }
+
+  .genre-group {
+    margin-bottom: 1.75rem;
+
+    > h3 {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--leather);
+      margin: 0 0 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+
+      .count {
+        font-weight: 400;
+        color: var(--muted);
+        text-transform: none;
+        letter-spacing: normal;
+        font-size: 0.82rem;
+      }
+    }
+  }
+
   .items {
     list-style: none;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
 
-    li {
-      border-radius: 10px;
+    .card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      border-radius: 12px;
       border: 1px solid var(--line);
       background: var(--surface);
       box-shadow: var(--shadow);
-      padding: 0.9rem 1.1rem;
+      overflow: hidden;
+    }
+
+    .cover {
+      aspect-ratio: 2 / 3;
+      background: var(--surface-2);
+      display: block;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+    }
+
+    .cover-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+
+      svg {
+        width: 2.25rem;
+        height: 2.25rem;
+      }
     }
 
     .info {
       display: flex;
       flex-direction: column;
       gap: 0.3rem;
+      padding: 0.85rem 0.9rem 1rem;
+      flex: 1;
     }
 
     .title {
       font-weight: 600;
+      font-size: 0.95rem;
+      line-height: 1.3;
     }
 
     .authors {
       color: var(--muted);
-      font-size: 0.88rem;
+      font-size: 0.82rem;
     }
 
     .meta-row {
+      margin-top: auto;
+      padding-top: 0.5rem;
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.9rem;
-      margin-top: 0.35rem;
-      font-size: 0.78rem;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.4rem;
+    }
+
+    .format {
+      font-size: 0.72rem;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.04em;
+    }
+
+    .pill-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .pill {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      white-space: nowrap;
+
+      &.lang { background: var(--surface-2); color: var(--leather); border: 1px solid var(--line); }
+      &.priority { background: var(--status-borrowed-bg); color: var(--status-borrowed-fg); }
+      &.price { background: var(--status-owned-bg); color: var(--status-owned-fg); }
     }
 
     .note {
       margin-top: 0.4rem;
-      font-size: 0.88rem;
+      font-size: 0.82rem;
       color: var(--ink);
+    }
+
+    .added {
+      margin-top: 0.3rem;
+      font-size: 0.72rem;
+      color: var(--muted);
     }
   }
 }

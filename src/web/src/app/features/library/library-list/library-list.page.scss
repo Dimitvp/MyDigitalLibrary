@@ -44,11 +44,26 @@
     margin-bottom: 1.5rem;
 
     .stat {
+      display: block;
+      width: 100%;
       background: var(--surface);
       border: 1px solid var(--line);
       border-radius: 10px;
       padding: 0.8rem 1rem;
       box-shadow: var(--shadow);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+
+      &:hover {
+        border-color: var(--accent);
+      }
+
+      &.active {
+        border-color: var(--accent);
+        border-width: 2px;
+        padding: calc(0.8rem - 1px) calc(1rem - 1px);
+      }
 
       .n {
         font-family: var(--font-display);
@@ -68,6 +83,7 @@
       &.borrowed .n { color: var(--status-borrowed-fg); }
       &.lentout .n { color: var(--status-lentout-fg); }
       &.reading .n { color: var(--leather); }
+      &.read .n { color: var(--accent); }
     }
   }
 
@@ -88,9 +104,10 @@
     }
   }
 
-  .filters {
+  .filters, .sort-row {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 0.6rem;
     margin-bottom: 1.5rem;
 
@@ -124,14 +141,40 @@
     }
   }
 
+  .sort-label, .filters-label {
+    font-size: 0.85rem;
+    color: var(--leather);
+    font-weight: 600;
+  }
+
   .status-text, .empty {
     color: var(--muted);
+  }
+
+  .collapse-toggle {
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    padding: 0;
+    width: 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      color: var(--accent);
+    }
   }
 
   .language-group {
     margin-bottom: 2.5rem;
 
     > h2 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
       font-size: 1.3rem;
       font-weight: 600;
       margin: 0 0 1rem;
@@ -153,6 +196,10 @@
       margin: 0 0 0.85rem;
       text-transform: uppercase;
       letter-spacing: 0.02em;
+
+      .collapse-toggle {
+        font-size: 0.8rem;
+      }
 
       .count {
         font-weight: 400;
@@ -275,6 +322,36 @@
       &.reading.finished { background: var(--status-owned-bg); color: var(--status-owned-fg); }
       &.reading.abandoned { background: var(--status-sold-bg); color: var(--status-sold-fg); }
       &.reading.onhold { background: var(--status-lentout-bg); color: var(--status-lentout-fg); }
+
+      &.lang { background: var(--surface-2); color: var(--leather); border: 1px solid var(--line); }
+    }
+  }
+
+  .scroll-nav {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 10;
+
+    button {
+      width: 2.75rem;
+      height: 2.75rem;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--leather);
+      box-shadow: var(--shadow);
+      font-size: 1.2rem;
+      line-height: 1;
+      cursor: pointer;
+
+      &:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
     }
   }
 }

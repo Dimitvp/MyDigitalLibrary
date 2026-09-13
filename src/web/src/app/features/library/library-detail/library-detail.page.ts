@@ -4,7 +4,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CatalogApiService } from '../../../core/api/catalog-api.service';
-import type { LibraryItem, ReadingStatus, WorkDetail } from '../../../core/api/models';
+import type { Edition, LibraryItem, ReadingStatus, WorkDetail } from '../../../core/api/models';
+import { languageDisplayLabel } from '../../../shared/language-display';
 import { GenrePickerComponent } from '../../../shared/ui/genre-picker/genre-picker.component';
 import { LibraryApiService } from '../library-api.service';
 import { ReadingApiService } from '../reading-api.service';
@@ -53,6 +54,13 @@ export class LibraryDetailPage {
   protected readonly readingBusy = signal(false);
   private readingInitialized = false;
 
+  // Backfills a reading period entirely in the past (e.g. importing history
+  // from Goodreads) — creates and finishes a session in one action instead
+  // of walking through the live start/finish flow above.
+  protected readonly markReadStartInput = signal(today());
+  protected readonly markReadEndInput = signal(today());
+  protected readonly markReadBusy = signal(false);
+
   // Cover replace — mirrors coverImageUrl locally so a successful upload shows immediately.
   protected readonly coverImageUrl = signal<string | null>(null);
   protected readonly uploadingCover = signal(false);
@@ -71,6 +79,16 @@ export class LibraryDetailPage {
   protected readonly savingGenres = signal(false);
   protected readonly genresSaved = signal(false);
   private genresInitialized = false;
+
+  // Full edition metadata (ISBN, publisher, year, page count, ...) — the
+  // library item itself only carries display fields, not the catalog record.
+  protected readonly editionResource = httpResource<Edition | null>(
+    () => {
+      const item = this.itemResource.value();
+      return item ? `/api/v1/editions/${item.editionId}` : undefined;
+    },
+    { defaultValue: null },
+  );
 
   constructor() {
     // Seed the editable draft once from the loaded item, without clobbering
@@ -115,6 +133,10 @@ export class LibraryDetailPage {
         this.selectedGenres.set(work.genreNames);
       }
     });
+  }
+
+  protected languageLabel(code: string | null): string | null {
+    return code ? languageDisplayLabel(code) : null;
   }
 
   protected onNoteInput(value: string): void {
@@ -177,6 +199,36 @@ export class LibraryDetailPage {
           this.activeSessionId.set(null);
         },
         error: () => this.readingBusy.set(false),
+      });
+  }
+
+  protected markAsRead(): void {
+    if (this.markReadBusy()) return;
+    const startedOn = this.markReadStartInput();
+    const endedOn = this.markReadEndInput();
+    if (endedOn < startedOn) return;
+
+    this.markReadBusy.set(true);
+
+    this.reading
+      .start(this.id, startedOn)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (session) =>
+          this.reading
+            .finish(session.id, endedOn)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: (finished) => {
+                this.markReadBusy.set(false);
+                this.readingStatus.set('Finished');
+                this.readingStartedOn.set(finished.startedOn);
+                this.readingEndedOn.set(finished.endedOn);
+                this.activeSessionId.set(null);
+              },
+              error: () => this.markReadBusy.set(false),
+            }),
+        error: () => this.markReadBusy.set(false),
       });
   }
 

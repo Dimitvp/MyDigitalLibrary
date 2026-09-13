@@ -25,11 +25,17 @@
       "totalBooks": "Total books",
       "noCover": "No cover",
       "currentlyReading": "Currently reading",
+      "read": "Read",
+      "filterBy": "Filter by:",
       "filterAllReading": "All (read/unread)",
       "filterAllGenres": "All categories",
+      "sortBy": "Sort by:",
       "sortDefault": "Default order",
       "sortAcquiredOn": "Date added",
-      "sortTitle": "Title"
+      "sortTitle": "Title (A-Z)",
+      "sortAuthor": "Author (A-Z)",
+      "scrollToTop": "Scroll to top",
+      "scrollToBottom": "Scroll to bottom"
     },
     "detail": {
       "title": "Details",
@@ -64,7 +70,9 @@
       "startedOn": "Started on",
       "finishedOn": "Finished on",
       "startButton": "Start reading",
-      "finishButton": "Mark as finished"
+      "finishButton": "Mark as finished",
+      "markReadPrompt": "Already finished it? Enter when you read it:",
+      "markReadButton": "Mark as read"
     },
     "form": {
       "addTitle": "Add a book",

@@ -105,6 +105,20 @@
     color: var(--muted);
     margin: 0 0 0.75rem;
   }
+
+  .original-title {
+    color: var(--muted);
+    font-style: italic;
+    font-size: 0.88rem;
+    margin: -0.4rem 0 0.75rem;
+  }
+
+  .description {
+    color: var(--ink);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0 0 1.25rem;
+  }
 }
 
 .pill-row {
@@ -132,6 +146,8 @@
   &.reading.finished { background: var(--status-owned-bg); color: var(--status-owned-fg); }
   &.reading.abandoned { background: var(--status-sold-bg); color: var(--status-sold-fg); }
   &.reading.onhold { background: var(--status-lentout-bg); color: var(--status-lentout-fg); }
+
+  &.lang { background: var(--surface-2); color: var(--leather); border: 1px solid var(--line); }
 }
 
 .reading-section {
@@ -177,6 +193,60 @@
       &:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+      }
+    }
+  }
+
+  .mark-read-actions {
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px dashed var(--line);
+
+    .mark-read-label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin: 0 0 0.6rem;
+    }
+
+    .mark-read-inputs {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 0.6rem;
+
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+
+      input[type='date'] {
+        padding: 0.45rem 0.6rem;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--ink);
+        font: inherit;
+        font-size: 0.85rem;
+      }
+
+      button {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: var(--accent-ink);
+        font: inherit;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
       }
     }
   }

@@ -18,7 +18,13 @@ public sealed class WishlistService(IApplicationDbContext db, BookCatalogService
             .ToListAsync(ct);
 
         var displayInfo = await catalog.GetWorkDisplayInfoAsync(entries.Select(e => e.WorkId), ct);
-        return entries.Select(e => WishlistEntryMapper.ToDto(e, displayInfo.GetValueOrDefault(e.WorkId, EmptyDisplayInfo))).ToList();
+        var editionIds = entries.Where(e => e.PreferredEditionId is not null).Select(e => e.PreferredEditionId!.Value);
+        var editionDisplay = await catalog.GetEditionDisplayInfoAsync(editionIds, ct);
+
+        return entries.Select(e => WishlistEntryMapper.ToDto(
+            e,
+            displayInfo.GetValueOrDefault(e.WorkId, EmptyDisplayInfo),
+            e.PreferredEditionId is { } editionId ? editionDisplay.GetValueOrDefault(editionId) : null)).ToList();
     }
 
     public async Task<WishlistEntryDto> CreateAsync(CreateWishlistEntryRequest request, Guid userId, CancellationToken ct)
@@ -59,7 +65,14 @@ public sealed class WishlistService(IApplicationDbContext db, BookCatalogService
         await db.SaveChangesAsync(ct);
 
         var displayInfo = await catalog.GetWorkDisplayInfoAsync([workId], ct);
-        return WishlistEntryMapper.ToDto(entry, displayInfo.GetValueOrDefault(workId, EmptyDisplayInfo));
+        EditionDisplayInfo? editionInfo = null;
+        if (entry.PreferredEditionId is { } preferredEditionId)
+        {
+            var editionDisplay = await catalog.GetEditionDisplayInfoAsync([preferredEditionId], ct);
+            editionInfo = editionDisplay.GetValueOrDefault(preferredEditionId);
+        }
+
+        return WishlistEntryMapper.ToDto(entry, displayInfo.GetValueOrDefault(workId, EmptyDisplayInfo), editionInfo);
     }
 
     public async Task<LibraryItemDto> FulfillAsync(Guid id, FulfillWishlistEntryRequest request, Guid userId, CancellationToken ct)

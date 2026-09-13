@@ -175,6 +175,9 @@ export interface WishlistEntry {
   isFulfilled: boolean;
   workTitle: string;
   authorNames: readonly string[];
+  coverImageUrl: string | null;
+  language: string | null;
+  genreNames: readonly string[];
 }
 
 export interface CreateWishlistEntryRequest {
@@ -234,6 +237,7 @@ export interface StatisticsDto {
   booksFinishedThisYear: number;
   pagesReadThisYear: number;
   currentlyReadingCount: number;
+  booksFinishedTotal: number;
   averageRating: number | null;
   topAuthors: readonly AuthorBookCount[];
 }

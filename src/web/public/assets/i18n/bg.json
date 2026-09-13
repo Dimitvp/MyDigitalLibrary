@@ -25,11 +25,17 @@
       "totalBooks": "Общо книги",
       "noCover": "Без корица",
       "currentlyReading": "В момента чета",
+      "read": "Прочетени",
+      "filterBy": "Филтрирай по:",
       "filterAllReading": "Всички (прочетени/непрочетени)",
       "filterAllGenres": "Всички категории",
+      "sortBy": "Сортирай по:",
       "sortDefault": "Подредба по подразбиране",
       "sortAcquiredOn": "Дата на добавяне",
-      "sortTitle": "Заглавие"
+      "sortTitle": "Азбучен ред - заглавие",
+      "sortAuthor": "Азбучен ред - автор",
+      "scrollToTop": "Към началото",
+      "scrollToBottom": "Към края"
     },
     "detail": {
       "title": "Детайли",
@@ -64,7 +70,9 @@
       "startedOn": "Започната на",
       "finishedOn": "Завършена на",
       "startButton": "Започни четене",
-      "finishButton": "Отбележи като прочетена"
+      "finishButton": "Отбележи като прочетена",
+      "markReadPrompt": "Вече си я прочел? Въведи кога:",
+      "markReadButton": "Отбележи като вече прочетена"
     },
     "form": {
       "addTitle": "Добавяне на книга",

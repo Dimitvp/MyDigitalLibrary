@@ -10,5 +10,6 @@ public sealed record StatisticsDto(
     int BooksFinishedThisYear,
     int PagesReadThisYear,
     int CurrentlyReadingCount,
+    int BooksFinishedTotal,
     double? AverageRating,
     IReadOnlyList<AuthorBookCount> TopAuthors);

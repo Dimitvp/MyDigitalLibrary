@@ -30,6 +30,9 @@
           <p class="authors">{{ item.authorNames.join(', ') }}</p>
         }
         <div class="pill-row">
+          @if (languageLabel(item.language); as langLabel) {
+            <span class="pill lang">{{ langLabel }}</span>
+          }
           <span class="pill" [class]="item.status.toLowerCase()">{{ 'library.status.' + item.status | transloco }}</span>
           <span class="pill reading" [class]="(readingStatus() ?? 'notstarted').toLowerCase()">
             {{ 'library.reading.' + (readingStatus() ?? 'notStarted') | transloco }}
@@ -60,12 +63,80 @@
                 {{ 'library.reading.startButton' | transloco }}
               </button>
             </div>
+
+            <div class="mark-read-actions">
+              <p class="mark-read-label">{{ 'library.reading.markReadPrompt' | transloco }}</p>
+              <div class="mark-read-inputs">
+                <label>
+                  {{ 'library.reading.startedOn' | transloco }}
+                  <input type="date" [value]="markReadStartInput()" (input)="markReadStartInput.set($any($event.target).value)" />
+                </label>
+                <label>
+                  {{ 'library.reading.finishedOn' | transloco }}
+                  <input type="date" [value]="markReadEndInput()" (input)="markReadEndInput.set($any($event.target).value)" />
+                </label>
+                <button type="button" (click)="markAsRead()" [disabled]="markReadBusy()">
+                  {{ 'library.reading.markReadButton' | transloco }}
+                </button>
+              </div>
+            </div>
           }
         </div>
+
+        @if (workResource.value(); as work) {
+          @if (work.originalTitle && work.originalTitle !== item.workTitle) {
+            <p class="original-title">{{ work.originalTitle }}</p>
+          }
+          @if (work.description) {
+            <p class="description">{{ work.description }}</p>
+          }
+        }
 
         <dl>
           <dt>{{ 'library.form.format' | transloco }}</dt>
           <dd>{{ 'library.format.' + item.format | transloco }}</dd>
+
+          @if (editionResource.value(); as edition) {
+            @if (edition.isbn13) {
+              <dt>{{ 'library.form.isbn' | transloco }}</dt>
+              <dd>{{ edition.isbn13 }}</dd>
+            }
+
+            @if (edition.publisher) {
+              <dt>{{ 'library.form.publisher' | transloco }}</dt>
+              <dd>{{ edition.publisher }}</dd>
+            }
+
+            @if (edition.publicationYear) {
+              <dt>{{ 'library.form.publicationYear' | transloco }}</dt>
+              <dd>{{ edition.publicationYear }}</dd>
+            }
+
+            @if (edition.pageCount) {
+              <dt>{{ 'library.form.pageCount' | transloco }}</dt>
+              <dd>{{ edition.pageCount }}</dd>
+            }
+
+            @if (edition.coverType && edition.coverType !== 'Unknown') {
+              <dt>{{ 'library.form.coverType' | transloco }}</dt>
+              <dd>{{ 'library.coverType.' + edition.coverType | transloco }}</dd>
+            }
+
+            @if (edition.translator) {
+              <dt>{{ 'library.form.translator' | transloco }}</dt>
+              <dd>{{ edition.translator }}</dd>
+            }
+
+            @if (edition.narrator) {
+              <dt>{{ 'library.form.narrator' | transloco }}</dt>
+              <dd>{{ edition.narrator }}</dd>
+            }
+
+            @if (edition.durationMinutes) {
+              <dt>{{ 'library.form.durationMinutes' | transloco }}</dt>
+              <dd>{{ edition.durationMinutes }}</dd>
+            }
+          }
 
           <dt>{{ 'library.form.acquiredOn' | transloco }}</dt>
           <dd>{{ item.acquisition.acquiredOn }}</dd>

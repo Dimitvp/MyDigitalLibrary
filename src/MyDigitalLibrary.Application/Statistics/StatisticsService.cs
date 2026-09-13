@@ -37,6 +37,14 @@ public sealed class StatisticsService(IApplicationDbContext db)
         var currentlyReadingCount = await db.ReadingSessions.AsNoTracking()
             .CountAsync(s => s.UserId == userId && s.Status == ReadingStatus.Reading, ct);
 
+        // Distinct library items, not sessions — a reread finishes a second
+        // session on the same item and shouldn't double-count it here.
+        var booksFinishedTotal = await db.ReadingSessions.AsNoTracking()
+            .Where(s => s.UserId == userId && s.Status == ReadingStatus.Finished)
+            .Select(s => s.LibraryItemId)
+            .Distinct()
+            .CountAsync(ct);
+
         var ratings = await db.WorkRatings.AsNoTracking().Where(r => r.UserId == userId).Select(r => r.Score).ToListAsync(ct);
         double? averageRating = ratings.Count > 0 ? ratings.Average() : null;
 
@@ -44,7 +52,7 @@ public sealed class StatisticsService(IApplicationDbContext db)
 
         return new StatisticsDto(
             year, libraryItems.Count, byFormat, byStatus,
-            finishedItemIds.Count, pagesReadThisYear, currentlyReadingCount,
+            finishedItemIds.Count, pagesReadThisYear, currentlyReadingCount, booksFinishedTotal,
             averageRating, topAuthors);
     }
 
