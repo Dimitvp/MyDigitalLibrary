@@ -45,6 +45,49 @@ public sealed class OpenLibraryProvider(HttpClient http, ILogger<OpenLibraryProv
         return ToCandidate(data);
     }
 
+    public async Task<BookMetadataCandidate?> SearchAsync(string title, IReadOnlyList<string> authorNames, CancellationToken ct)
+    {
+        var query = $"/search.json?title={Uri.EscapeDataString(title)}";
+        if (authorNames.Count > 0)
+            query += $"&author={Uri.EscapeDataString(authorNames[0])}";
+        query += "&limit=1&fields=title,author_name,first_publish_year,number_of_pages_median,cover_i,publisher";
+
+        OpenLibrarySearchResult? result;
+        try
+        {
+            result = await http.GetFromJsonAsync(query, OpenLibraryJsonContext.Default.OpenLibrarySearchResult, ct);
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogWarning(ex, "Open Library search failed for title {Title}.", title);
+            return null;
+        }
+        catch (JsonException ex)
+        {
+            logger.LogWarning(ex, "Open Library returned unparseable JSON for title {Title}.", title);
+            return null;
+        }
+
+        var doc = result?.Docs?.FirstOrDefault();
+        return doc is null ? null : ToCandidate(doc);
+    }
+
+    /// <summary>Pure mapping, separated from the HTTP call so it's unit-testable without a live network dependency.</summary>
+    public static BookMetadataCandidate ToCandidate(OpenLibrarySearchDoc doc) => new(
+        ProviderKey: "open-library",
+        Title: doc.Title,
+        OriginalTitle: null,
+        AuthorNames: doc.AuthorName ?? [],
+        Publisher: doc.Publisher?.FirstOrDefault(),
+        PublicationYear: doc.FirstPublishYear,
+        Language: null,
+        PageCount: doc.NumberOfPagesMedian,
+        Description: null,
+        CoverUrl: doc.CoverId is { } coverId ? new Uri($"https://covers.openlibrary.org/b/id/{coverId}-L.jpg") : null,
+        SeriesName: null,
+        SeriesPosition: null,
+        Genres: []);
+
     /// <summary>Pure mapping, separated from the HTTP call so it's unit-testable without a live network dependency.</summary>
     public static BookMetadataCandidate ToCandidate(OpenLibraryBookData data) => new(
         ProviderKey: "open-library",
@@ -105,6 +148,22 @@ public sealed class OpenLibraryCover
     public string? Large { get; set; }
 }
 
+public sealed class OpenLibrarySearchResult
+{
+    public List<OpenLibrarySearchDoc>? Docs { get; set; }
+}
+
+public sealed class OpenLibrarySearchDoc
+{
+    public string? Title { get; set; }
+    [JsonPropertyName("author_name")] public List<string>? AuthorName { get; set; }
+    [JsonPropertyName("first_publish_year")] public int? FirstPublishYear { get; set; }
+    [JsonPropertyName("number_of_pages_median")] public int? NumberOfPagesMedian { get; set; }
+    [JsonPropertyName("cover_i")] public int? CoverId { get; set; }
+    public List<string>? Publisher { get; set; }
+}
+
 [JsonSerializable(typeof(Dictionary<string, OpenLibraryBookData>))]
+[JsonSerializable(typeof(OpenLibrarySearchResult))]
 [JsonSourceGenerationOptions(PropertyNameCaseInsensitive = true)]
 internal sealed partial class OpenLibraryJsonContext : JsonSerializerContext;

@@ -1,0 +1,64 @@
+<div class="wishlist-fulfill">
+  @if (entryResource.isLoading()) {
+    <p class="status-text">{{ 'common.loading' | transloco }}</p>
+  } @else if (entryResource.value(); as entry) {
+    <a routerLink="/wishlist">← {{ 'library.detail.back' | transloco }}</a>
+    <h1>{{ 'wishlist.fulfill.title' | transloco }}</h1>
+    <p class="subtitle">{{ entry.workTitle }} — {{ entry.authorNames.join(', ') }}</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label>
+        <span>{{ 'library.form.acquiredOn' | transloco }}</span>
+        <input type="date" formControlName="acquiredOn" required />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.acquisitionMethod' | transloco }}</span>
+        <select formControlName="acquisitionMethod">
+          @for (method of acquisitionMethods; track method) {
+            <option [value]="method">{{ 'library.acquisitionMethod.' + method | transloco }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        <span>{{ 'library.form.price' | transloco }}</span>
+        <input type="number" step="0.01" formControlName="priceAmount" />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.currency' | transloco }}</span>
+        <input type="text" formControlName="currencyCode" maxlength="3" />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.source' | transloco }}</span>
+        <input type="text" formControlName="source" />
+      </label>
+
+      @if (entry.desiredFormat === 'Physical') {
+        <fieldset>
+          <legend>{{ 'wishlist.fulfill.location' | transloco }}</legend>
+          <label>
+            <span>{{ 'library.location.room' | transloco }}</span>
+            <input type="text" formControlName="room" />
+          </label>
+          <label>
+            <span>{{ 'library.location.shelf' | transloco }}</span>
+            <input type="text" formControlName="shelf" />
+          </label>
+          <label>
+            <span>{{ 'library.location.box' | transloco }}</span>
+            <input type="text" formControlName="box" />
+          </label>
+        </fieldset>
+      }
+
+      <div class="actions">
+        <button type="submit" [disabled]="form.invalid || submitting()">
+          {{ 'wishlist.fulfill.submit' | transloco }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

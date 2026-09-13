@@ -36,6 +36,21 @@ public sealed record CreateWishlistEntryRequest(
 
 public sealed record FulfillWishlistEntryRequest(Guid EditionId, AcquisitionDto Acquisition, PhysicalLocationDto? Location);
 
+public sealed record UpdateWishlistEntryRequest(
+    BookFormat DesiredFormat,
+    int Priority,
+    Guid? PreferredEditionId,
+    MoneyDto? MaxPrice,
+    string? Note,
+    bool IsOutOfStock);
+
+/// <summary>
+/// CoverUrl mirrors the externally-hosted image the match was found at — the
+/// UI can show it immediately, ahead of the background download that fills
+/// in Entry.CoverImageUrl (the locally-hosted copy) a little later.
+/// </summary>
+public sealed record FindCoverResultDto(bool Found, string? CoverUrl, WishlistEntryDto Entry);
+
 public static class WishlistEntryMapper
 {
     // editionInfo is null whenever the entry has no PreferredEditionId (or it

@@ -1,0 +1,145 @@
+<div class="wishlist-edit">
+  @if (entryResource.isLoading()) {
+    <p class="status-text">{{ 'common.loading' | transloco }}</p>
+  } @else if (entryResource.value(); as entry) {
+    <a routerLink="/wishlist">← {{ 'library.detail.back' | transloco }}</a>
+    <h1>{{ 'wishlist.form.editTitle' | transloco }}</h1>
+
+    <section class="edit-section cover-section">
+      <h2>{{ 'library.form.cover' | transloco }}</h2>
+
+      <div class="cover-row">
+        <span class="cover">
+          @if (coverImageUrl()) {
+            <img [src]="coverImageUrl()" [alt]="entry.workTitle" />
+          } @else {
+            <span class="cover-placeholder" [attr.aria-label]="'library.list.noCover' | transloco">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H18a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6.5A1.5 1.5 0 0 1 5 19.5v-15Z" stroke="currentColor" stroke-width="1.4"/>
+                <path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H8v18H6.5A1.5 1.5 0 0 1 5 19.5v-15Z" fill="currentColor" opacity=".25" stroke="currentColor" stroke-width="1.4"/>
+              </svg>
+            </span>
+          }
+        </span>
+
+        <div class="cover-search">
+          <p class="hint">{{ 'wishlist.form.coverSearchHint' | transloco }}</p>
+          <div class="cover-search-row">
+            <input
+              type="text"
+              #coverQueryInput
+              [placeholder]="'import.search.placeholder' | transloco"
+              (keydown.enter)="searchCover(coverQueryInput.value)"
+            />
+            <button type="button" (click)="searchCover(coverQueryInput.value)" [disabled]="coverSearching()">
+              {{ 'import.search.submit' | transloco }}
+            </button>
+          </div>
+
+          @if (coverSearching()) {
+            <p class="status-text">{{ 'import.search.searching' | transloco }}</p>
+          }
+          @if (coverSearchError()) {
+            <p class="error">{{ coverSearchError() | transloco }}</p>
+          }
+
+          @if (coverCandidate(); as found) {
+            <div class="candidate">
+              @if (found.candidate.coverUrl) {
+                <img [src]="found.candidate.coverUrl" [alt]="found.candidate.title" class="candidate-cover" />
+              }
+              <div class="candidate-info">
+                <strong>{{ found.candidate.title }}</strong>
+                <span>{{ found.candidate.authorNames.join(', ') }}</span>
+              </div>
+              <button type="button" (click)="useCoverCandidate()" [disabled]="coverAttaching()">
+                {{ 'wishlist.form.useCover' | transloco }}
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="edit-section" [formGroup]="workForm">
+      <h2>{{ 'library.form.workSection' | transloco }}</h2>
+
+      <label>
+        <span>{{ 'library.form.workTitle' | transloco }}</span>
+        <input type="text" formControlName="title" required />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.authorNames' | transloco }}</span>
+        <input type="text" formControlName="authorNames" />
+      </label>
+
+      <div class="section-actions">
+        <button type="button" (click)="saveWork()" [disabled]="workForm.invalid || savingWork()">
+          {{ 'library.form.save' | transloco }}
+        </button>
+        @if (workSaved()) {
+          <span class="saved">{{ 'library.detail.noteSaved' | transloco }}</span>
+        }
+      </div>
+    </section>
+
+    <section class="edit-section" [formGroup]="wishForm">
+      <h2>{{ 'wishlist.form.wishSection' | transloco }}</h2>
+
+      <label>
+        <span>{{ 'wishlist.form.format' | transloco }}</span>
+        <select formControlName="desiredFormat">
+          @for (format of formats; track format) {
+            <option [value]="format">{{ 'library.format.' + format | transloco }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        <span>{{ 'wishlist.form.priority' | transloco }}</span>
+        <select formControlName="priority">
+          @for (p of priorities; track p) {
+            <option [value]="p">{{ p }} — {{ priorityLabel(p) }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        <span>{{ 'wishlist.form.maxPrice' | transloco }}</span>
+        <input type="number" step="0.01" formControlName="priceAmount" />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.currency' | transloco }}</span>
+        <input type="text" formControlName="currencyCode" maxlength="3" />
+      </label>
+
+      <label class="checkbox">
+        <input type="checkbox" formControlName="isOutOfStock" />
+        <span>{{ 'wishlist.form.isOutOfStock' | transloco }}</span>
+      </label>
+
+      <label>
+        <span>{{ 'wishlist.form.note' | transloco }}</span>
+        <textarea rows="3" formControlName="note"></textarea>
+      </label>
+
+      <div class="section-actions">
+        <button type="button" (click)="saveWish()" [disabled]="wishForm.invalid || savingWish()">
+          {{ 'library.form.save' | transloco }}
+        </button>
+        @if (wishSaved()) {
+          <span class="saved">{{ 'library.detail.noteSaved' | transloco }}</span>
+        }
+      </div>
+    </section>
+
+    <div class="actions">
+      <button type="button" class="done" (click)="done()">{{ 'library.form.cancel' | transloco }}</button>
+      <button type="button" class="delete" (click)="delete()" [disabled]="deleting()">
+        {{ 'wishlist.list.delete' | transloco }}
+      </button>
+    </div>
+  }
+</div>

@@ -192,6 +192,41 @@ export interface CreateWishlistEntryRequest {
   isOutOfStock: boolean;
 }
 
+export interface UpdateWishlistEntryRequest {
+  desiredFormat: BookFormat;
+  priority: number;
+  preferredEditionId: string | null;
+  maxPrice: Money | null;
+  note: string | null;
+  isOutOfStock: boolean;
+}
+
+export interface FulfillWishlistEntryRequest {
+  editionId: string;
+  acquisition: Acquisition;
+  location: PhysicalLocation | null;
+}
+
+export interface FindCoverResult {
+  found: boolean;
+  coverUrl: string | null;
+  entry: WishlistEntry;
+}
+
+export interface CreateStandaloneEditionRequest {
+  format: BookFormat;
+  isbn13: string | null;
+  publisher: string | null;
+  language: string | null;
+  translator: string | null;
+  publicationYear: number | null;
+  pageCount: number | null;
+  coverType: CoverType | null;
+  narrator: string | null;
+  durationMinutes: number | null;
+  coverUrl: string | null;
+}
+
 export interface FollowedBookSource {
   id: string;
   name: string;

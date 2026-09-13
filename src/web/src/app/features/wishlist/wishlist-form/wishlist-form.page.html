@@ -23,7 +23,11 @@
 
     <label>
       <span>{{ 'wishlist.form.priority' | transloco }}</span>
-      <input type="number" min="1" formControlName="priority" />
+      <select formControlName="priority">
+        @for (p of priorities; track p) {
+          <option [value]="p">{{ p }} — {{ priorityLabel(p) }}</option>
+        }
+      </select>
     </label>
 
     <label>

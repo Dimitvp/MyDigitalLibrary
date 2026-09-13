@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import type { BookFormat, CreateWishlistEntryRequest } from '../../../core/api/models';
 import { WishlistApiService } from '../wishlist-api.service';
 
@@ -24,9 +24,11 @@ interface WishlistFormControls {
 export class WishlistFormPage {
   private readonly api = inject(WishlistApiService);
   private readonly router = inject(Router);
+  private readonly transloco = inject(TranslocoService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly formats: readonly BookFormat[] = ['Physical', 'Ebook', 'Audiobook'];
+  protected readonly priorities = [1, 2, 3, 4, 5];
 
   protected readonly submitting = signal(false);
 
@@ -37,6 +39,10 @@ export class WishlistFormPage {
     priority: new FormControl(3, { nonNullable: true, validators: [Validators.required] }),
     note: new FormControl('', { nonNullable: true }),
   });
+
+  protected priorityLabel(priority: number): string {
+    return this.transloco.translate(`wishlist.priorityLevel.${priority}`);
+  }
 
   protected submit(): void {
     if (this.form.invalid || this.submitting()) {

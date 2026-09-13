@@ -26,9 +26,30 @@ public sealed class GoogleBooksProvider(HttpClient http, IOptions<GoogleBooksOpt
 {
     public string ProviderKey => "google-books";
 
-    public async Task<GoogleBooksVolumes?> FetchAsync(Isbn isbn, CancellationToken ct)
+    public Task<GoogleBooksVolumes?> FetchAsync(Isbn isbn, CancellationToken ct)
+        => FetchVolumesAsync($"isbn:{Uri.EscapeDataString(isbn.Value)}", isbn.Value, ct);
+
+    public async Task<BookMetadataCandidate?> LookupByIsbnAsync(Isbn isbn, CancellationToken ct)
     {
-        var query = $"/books/v1/volumes?q=isbn:{Uri.EscapeDataString(isbn.Value)}";
+        var volumes = await FetchAsync(isbn, ct);
+        var info = volumes?.Items?.FirstOrDefault()?.VolumeInfo;
+        return info is null ? null : ToCandidate(info);
+    }
+
+    public async Task<BookMetadataCandidate?> SearchAsync(string title, IReadOnlyList<string> authorNames, CancellationToken ct)
+    {
+        var q = $"intitle:{Uri.EscapeDataString(title)}";
+        if (authorNames.Count > 0)
+            q += $"+inauthor:{Uri.EscapeDataString(authorNames[0])}";
+
+        var volumes = await FetchVolumesAsync(q, title, ct);
+        var info = volumes?.Items?.FirstOrDefault()?.VolumeInfo;
+        return info is null ? null : ToCandidate(info);
+    }
+
+    private async Task<GoogleBooksVolumes?> FetchVolumesAsync(string q, string logSubject, CancellationToken ct)
+    {
+        var query = $"/books/v1/volumes?q={q}";
         if (!string.IsNullOrWhiteSpace(options.Value.ApiKey))
             query += $"&key={Uri.EscapeDataString(options.Value.ApiKey)}";
 
@@ -38,21 +59,14 @@ public sealed class GoogleBooksProvider(HttpClient http, IOptions<GoogleBooksOpt
         }
         catch (HttpRequestException ex)
         {
-            logger.LogWarning(ex, "Google Books lookup failed for ISBN {Isbn} ({StatusCode}).", isbn.Value, ex.StatusCode);
+            logger.LogWarning(ex, "Google Books lookup failed for {Subject} ({StatusCode}).", logSubject, ex.StatusCode);
             return null;
         }
         catch (JsonException ex)
         {
-            logger.LogWarning(ex, "Google Books returned unparseable JSON for ISBN {Isbn}.", isbn.Value);
+            logger.LogWarning(ex, "Google Books returned unparseable JSON for {Subject}.", logSubject);
             return null;
         }
-    }
-
-    public async Task<BookMetadataCandidate?> LookupByIsbnAsync(Isbn isbn, CancellationToken ct)
-    {
-        var volumes = await FetchAsync(isbn, ct);
-        var info = volumes?.Items?.FirstOrDefault()?.VolumeInfo;
-        return info is null ? null : ToCandidate(info);
     }
 
     /// <summary>Pure mapping, separated from the HTTP call so it's unit-testable without a live network dependency.</summary>

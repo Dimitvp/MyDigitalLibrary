@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import type { Edition, Genre, UpdateEditionRequest, UpdateWorkRequest, WorkDetail } from './models';
+import type { CreateStandaloneEditionRequest, Edition, Genre, UpdateEditionRequest, UpdateWorkRequest, WorkDetail } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class CatalogApiService {
@@ -33,6 +33,10 @@ export class CatalogApiService {
 
   updateEdition(editionId: string, request: UpdateEditionRequest): Observable<void> {
     return this.http.put<void>(`/api/v1/editions/${editionId}`, request);
+  }
+
+  createEdition(workId: string, request: CreateStandaloneEditionRequest): Observable<Edition> {
+    return this.http.post<Edition>(`/api/v1/works/${workId}/editions`, request);
   }
 
   uploadCover(editionId: string, file: File): Observable<{ coverImageUrl: string }> {

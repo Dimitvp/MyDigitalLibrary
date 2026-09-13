@@ -107,6 +107,11 @@
       "editionSection": "Edition",
       "acquisitionSection": "Acquisition"
     },
+    "location": {
+      "room": "Room",
+      "shelf": "Shelf",
+      "box": "Box"
+    },
     "format": {
       "Physical": "Physical",
       "Ebook": "Ebook",
@@ -139,16 +144,46 @@
       "add": "Add to wishlist",
       "priority": "Priority",
       "addedOn": "Added on",
-      "outOfStock": "Out of stock"
+      "outOfStock": "Out of stock",
+      "totalWishes": "Total wishes",
+      "search": "Search by title or author...",
+      "filterAllFormats": "All formats",
+      "filterAllPriorities": "All priorities",
+      "sortPriority": "Priority",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Are you sure you want to delete this wishlist entry?",
+      "markOwned": "I already have it",
+      "findCovers": "Find missing covers",
+      "findCoversProgress": "Checked {{checked}} of {{total}}, found {{found}}",
+      "findCoversStop": "Stop"
+    },
+    "priorityLevel": {
+      "1": "Highest",
+      "2": "High",
+      "3": "Medium",
+      "4": "Low",
+      "5": "Lowest"
     },
     "form": {
       "addTitle": "Add a book to your wishlist",
+      "editTitle": "Edit wishlist entry",
       "workTitle": "Title",
       "authorNames": "Author(s) (comma-separated)",
       "format": "Desired format",
-      "priority": "Priority (1 = highest)",
+      "priority": "Priority",
+      "maxPrice": "Max price",
+      "isOutOfStock": "Currently out of stock everywhere",
       "note": "Note",
-      "save": "Add"
+      "save": "Add",
+      "wishSection": "Wish",
+      "coverSearchHint": "Look the book up by ISBN or link to attach a cover.",
+      "useCover": "Use this cover"
+    },
+    "fulfill": {
+      "title": "Move to \"I have it\"",
+      "location": "Location",
+      "submit": "Move to library"
     }
   },
   "bookSources": {
