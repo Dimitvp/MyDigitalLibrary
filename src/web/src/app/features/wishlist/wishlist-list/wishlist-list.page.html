@@ -23,7 +23,10 @@
             <ul class="items">
               @for (entry of genreGroup.entries; track entry.id) {
                 <li>
-                  <div class="card">
+                  <div class="card" [class.out-of-stock]="entry.isOutOfStock">
+                    @if (entry.isOutOfStock) {
+                      <span class="out-of-stock-banner">{{ 'wishlist.list.outOfStock' | transloco }}</span>
+                    }
                     <span class="cover">
                       @if (entry.coverImageUrl) {
                         <img [src]="entry.coverImageUrl" [alt]="entry.workTitle" loading="lazy" />

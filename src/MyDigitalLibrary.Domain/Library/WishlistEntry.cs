@@ -22,6 +22,14 @@ public sealed class WishlistEntry : Entity, IUserOwned
     public DateOnly AddedOn { get; }
     public bool IsFulfilled { get; private set; }
 
+    /// <summary>
+    /// Free-standing flag rather than a full per-store <c>MarketAvailability</c>
+    /// (see <c>BookstoreListing</c>) — a wishlist entry isn't tied to one
+    /// store, so this just records "the last time I checked, nobody had it",
+    /// for the UI to flag. Manually set; nothing refreshes it automatically.
+    /// </summary>
+    public bool IsOutOfStock { get; private set; }
+
     public WishlistEntry(
         Guid userId,
         Guid workId,
@@ -30,7 +38,8 @@ public sealed class WishlistEntry : Entity, IUserOwned
         DateOnly addedOn,
         Guid? preferredEditionId = null,
         Money? maxPrice = null,
-        string? note = null)
+        string? note = null,
+        bool isOutOfStock = false)
     {
         ValidatePriority(priority);
 
@@ -42,6 +51,7 @@ public sealed class WishlistEntry : Entity, IUserOwned
         PreferredEditionId = preferredEditionId;
         MaxPrice = maxPrice;
         Note = note;
+        IsOutOfStock = isOutOfStock;
     }
 
     // For EF Core materialization only: MaxPrice is itself an owned type and
@@ -51,7 +61,7 @@ public sealed class WishlistEntry : Entity, IUserOwned
     {
     }
 
-    public void Update(BookFormat desiredFormat, int priority, Guid? preferredEditionId, Money? maxPrice, string? note)
+    public void Update(BookFormat desiredFormat, int priority, Guid? preferredEditionId, Money? maxPrice, string? note, bool isOutOfStock)
     {
         ValidatePriority(priority);
 
@@ -60,6 +70,7 @@ public sealed class WishlistEntry : Entity, IUserOwned
         PreferredEditionId = preferredEditionId;
         MaxPrice = maxPrice;
         Note = note;
+        IsOutOfStock = isOutOfStock;
     }
 
     /// <summary>Bought it: close the wish and create the owned copy.</summary>

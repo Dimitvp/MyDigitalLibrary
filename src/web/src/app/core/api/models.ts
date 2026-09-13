@@ -173,6 +173,7 @@ export interface WishlistEntry {
   note: string | null;
   addedOn: string;
   isFulfilled: boolean;
+  isOutOfStock: boolean;
   workTitle: string;
   authorNames: readonly string[];
   coverImageUrl: string | null;
@@ -188,6 +189,30 @@ export interface CreateWishlistEntryRequest {
   preferredEditionId: string | null;
   maxPrice: Money | null;
   note: string | null;
+  isOutOfStock: boolean;
+}
+
+export interface FollowedBookSource {
+  id: string;
+  name: string;
+  url: string;
+  category: string | null;
+  notes: string | null;
+  addedOn: string;
+}
+
+export interface CreateFollowedBookSourceRequest {
+  name: string;
+  url: string;
+  category: string | null;
+  notes: string | null;
+}
+
+export interface UpdateFollowedBookSourceRequest {
+  name: string;
+  url: string;
+  category: string | null;
+  notes: string | null;
 }
 
 export interface BookMetadataCandidate {

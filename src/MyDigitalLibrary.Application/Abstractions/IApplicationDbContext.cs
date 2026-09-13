@@ -21,6 +21,7 @@ public interface IApplicationDbContext
     DbSet<BookstoreListing> BookstoreListings { get; }
     DbSet<LibraryItem> LibraryItems { get; }
     DbSet<WishlistEntry> WishlistEntries { get; }
+    DbSet<FollowedBookSource> FollowedBookSources { get; }
     DbSet<Shelf> Shelves { get; }
     DbSet<Note> Notes { get; }
     DbSet<Quote> Quotes { get; }

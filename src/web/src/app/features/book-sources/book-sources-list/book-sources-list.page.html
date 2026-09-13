@@ -1,0 +1,69 @@
+<div class="book-sources-list">
+  <header>
+    <div>
+      <p class="eyebrow">{{ 'app.title' | transloco }}</p>
+      <h1>{{ 'bookSources.list.title' | transloco }}</h1>
+    </div>
+    <button type="button" class="add-button" (click)="toggleForm()">
+      {{ (formOpen() ? 'common.cancel' : 'bookSources.list.add') | transloco }}
+    </button>
+  </header>
+
+  @if (formOpen()) {
+    <form class="add-form" [formGroup]="form" (ngSubmit)="submit()">
+      <label>
+        <span>{{ 'bookSources.form.name' | transloco }}</span>
+        <input type="text" formControlName="name" required />
+      </label>
+
+      <label>
+        <span>{{ 'bookSources.form.url' | transloco }}</span>
+        <input type="url" formControlName="url" required />
+      </label>
+
+      <label>
+        <span>{{ 'bookSources.form.category' | transloco }}</span>
+        <input type="text" formControlName="category" [placeholder]="'bookSources.form.categoryPlaceholder' | transloco" />
+      </label>
+
+      <label>
+        <span>{{ 'bookSources.form.notes' | transloco }}</span>
+        <input type="text" formControlName="notes" />
+      </label>
+
+      <div class="actions">
+        <button type="submit" [disabled]="form.invalid || submitting()">
+          {{ 'bookSources.form.save' | transloco }}
+        </button>
+      </div>
+    </form>
+  }
+
+  @if (listResource.isLoading()) {
+    <p class="status-text">{{ 'common.loading' | transloco }}</p>
+  } @else if (listResource.value().length === 0) {
+    <p class="empty">{{ 'bookSources.list.empty' | transloco }}</p>
+  } @else {
+    @for (group of groups(); track group.categoryKey) {
+      <section class="category-group">
+        <h2>{{ group.categoryLabel ?? ('bookSources.list.noCategory' | transloco) }} <span class="count">{{ group.sources.length }}</span></h2>
+
+        <ul class="items">
+          @for (source of group.sources; track source.id) {
+            <li class="card">
+              <span class="info">
+                <a class="name" [href]="source.url" target="_blank" rel="noopener noreferrer">{{ source.name }}</a>
+                @if (source.notes) {
+                  <span class="notes">{{ source.notes }}</span>
+                }
+              </span>
+              <button type="button" class="remove-button" (click)="remove(source.id)" [attr.aria-label]="'bookSources.list.remove' | transloco">
+                &times;
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+</div>

@@ -16,6 +16,7 @@ public sealed record WishlistEntryDto(
     string? Note,
     DateOnly AddedOn,
     bool IsFulfilled,
+    bool IsOutOfStock,
     string WorkTitle,
     IReadOnlyList<string> AuthorNames,
     string? CoverImageUrl,
@@ -30,7 +31,8 @@ public sealed record CreateWishlistEntryRequest(
     int Priority,
     Guid? PreferredEditionId,
     MoneyDto? MaxPrice,
-    string? Note);
+    string? Note,
+    bool IsOutOfStock = false);
 
 public sealed record FulfillWishlistEntryRequest(Guid EditionId, AcquisitionDto Acquisition, PhysicalLocationDto? Location);
 
@@ -42,7 +44,7 @@ public static class WishlistEntryMapper
     public static WishlistEntryDto ToDto(DomainWishlistEntry entry, WorkDisplayInfo displayInfo, EditionDisplayInfo? editionInfo) => new(
         entry.Id, entry.UserId, entry.WorkId, entry.PreferredEditionId, entry.DesiredFormat, entry.Priority,
         entry.MaxPrice is null ? null : new MoneyDto(entry.MaxPrice.Amount, entry.MaxPrice.CurrencyCode),
-        entry.Note, entry.AddedOn, entry.IsFulfilled,
+        entry.Note, entry.AddedOn, entry.IsFulfilled, entry.IsOutOfStock,
         displayInfo.Title, displayInfo.AuthorNames,
         editionInfo?.CoverImageUrl, editionInfo?.Language, displayInfo.GenreNames);
 }

@@ -86,6 +86,7 @@
     gap: 1rem;
 
     .card {
+      position: relative;
       display: flex;
       flex-direction: column;
       height: 100%;
@@ -94,6 +95,23 @@
       background: var(--surface);
       box-shadow: var(--shadow);
       overflow: hidden;
+
+      &.out-of-stock {
+        border-color: var(--out-of-stock, #d6392b);
+        box-shadow: 0 0 0 1px var(--out-of-stock, #d6392b);
+      }
+    }
+
+    .out-of-stock-banner {
+      display: block;
+      background: var(--out-of-stock, #d6392b);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      text-align: center;
+      padding: 0.3rem 0.5rem;
     }
 
     .cover {

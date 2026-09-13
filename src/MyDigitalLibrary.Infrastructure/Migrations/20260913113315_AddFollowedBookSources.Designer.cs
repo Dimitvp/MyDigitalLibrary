@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MyDigitalLibrary.Infrastructure.Persistence;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using NpgsqlTypes;
 namespace MyDigitalLibrary.Infrastructure.Migrations
 {
     [DbContext(typeof(MyDigitalLibraryDbContext))]
-    partial class MyDigitalLibraryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260913113315_AddFollowedBookSources")]
+    partial class AddFollowedBookSources
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -813,10 +816,6 @@ namespace MyDigitalLibrary.Infrastructure.Migrations
                     b.Property<bool>("IsFulfilled")
                         .HasColumnType("boolean")
                         .HasColumnName("is_fulfilled");
-
-                    b.Property<bool>("IsOutOfStock")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_out_of_stock");
 
                     b.Property<string>("Note")
                         .HasColumnType("text")

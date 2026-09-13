@@ -5,6 +5,7 @@
   "nav": {
     "library": "Library",
     "wishlist": "Wishlist",
+    "bookSources": "Bookstores",
     "import": "Add via import",
     "logout": "Log out"
   },
@@ -137,7 +138,8 @@
       "empty": "Your wishlist is empty.",
       "add": "Add to wishlist",
       "priority": "Priority",
-      "addedOn": "Added on"
+      "addedOn": "Added on",
+      "outOfStock": "Out of stock"
     },
     "form": {
       "addTitle": "Add a book to your wishlist",
@@ -147,6 +149,23 @@
       "priority": "Priority (1 = highest)",
       "note": "Note",
       "save": "Add"
+    }
+  },
+  "bookSources": {
+    "list": {
+      "title": "Bookstores & libraries I follow",
+      "empty": "You haven't added any bookstores or libraries yet.",
+      "add": "Add",
+      "noCategory": "Uncategorized",
+      "remove": "Remove"
+    },
+    "form": {
+      "name": "Name",
+      "url": "URL",
+      "category": "Category",
+      "categoryPlaceholder": "e.g. bookstore, publisher, library",
+      "notes": "Note",
+      "save": "Save"
     }
   },
   "import": {

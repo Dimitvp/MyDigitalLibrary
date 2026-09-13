@@ -16,6 +16,7 @@ public sealed class WishlistEntryConfiguration : IEntityTypeConfiguration<Wishli
         builder.Property(w => w.Priority).IsRequired();
         builder.Property(w => w.AddedOn).IsRequired();
         builder.Property(w => w.Note);
+        builder.Property(w => w.IsOutOfStock).IsRequired();
 
         builder.OwnsOne(w => w.MaxPrice, price =>
         {

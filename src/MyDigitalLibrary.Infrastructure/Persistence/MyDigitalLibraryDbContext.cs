@@ -26,6 +26,7 @@ public sealed class MyDigitalLibraryDbContext(DbContextOptions<MyDigitalLibraryD
     // Per-user data — plan section 3.7.
     public DbSet<LibraryItem> LibraryItems => Set<LibraryItem>();
     public DbSet<WishlistEntry> WishlistEntries => Set<WishlistEntry>();
+    public DbSet<FollowedBookSource> FollowedBookSources => Set<FollowedBookSource>();
     public DbSet<Tag> Tags => Set<Tag>();
     public DbSet<Shelf> Shelves => Set<Shelf>();
     public DbSet<Note> Notes => Set<Note>();

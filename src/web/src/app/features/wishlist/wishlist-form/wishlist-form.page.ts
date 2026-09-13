@@ -66,6 +66,7 @@ export class WishlistFormPage {
       preferredEditionId: null,
       maxPrice: null,
       note: raw.note || null,
+      isOutOfStock: false,
     };
 
     this.api

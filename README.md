@@ -72,7 +72,8 @@ npm install
 npm start
 ```
 
-`npm start` (`ng serve`) обслужва Angular dev server-а на `http://localhost:4200`
+`npm start` (`ng serve`) обслужва Angular dev server-а на `http://localhost:4201`
+(портът е фиксиран в `angular.json` — `4200` е зает от друг локален Docker проект)
 и прокси-ва `/api`/`/health`/`/covers` към `http://localhost:8081` (виж `proxy.conf.json`)
 — затова API-то (`docker compose up -d` или `dotnet run`) трябва да работи
 паралелно, за да работят вход/списък/детайли/добавяне в браузъра. Вход с

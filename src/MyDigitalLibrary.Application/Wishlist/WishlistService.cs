@@ -59,7 +59,8 @@ public sealed class WishlistService(IApplicationDbContext db, BookCatalogService
             DateOnly.FromDateTime(DateTime.UtcNow),
             request.PreferredEditionId,
             request.MaxPrice is null ? null : new Money(request.MaxPrice.Amount, request.MaxPrice.CurrencyCode),
-            request.Note);
+            request.Note,
+            request.IsOutOfStock);
 
         db.WishlistEntries.Add(entry);
         await db.SaveChangesAsync(ct);

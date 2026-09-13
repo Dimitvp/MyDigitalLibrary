@@ -18,6 +18,11 @@ export const routes: Routes = [
     loadChildren: () => import('./features/wishlist/wishlist.routes').then((m) => m.wishlistRoutes),
   },
   {
+    path: 'book-sources',
+    canActivate: [authGuard],
+    loadChildren: () => import('./features/book-sources/book-sources.routes').then((m) => m.bookSourcesRoutes),
+  },
+  {
     path: 'import',
     canActivate: [authGuard],
     loadComponent: () => import('./features/import/import.page').then((m) => m.ImportPage),
