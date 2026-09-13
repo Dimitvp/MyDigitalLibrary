@@ -3,21 +3,35 @@
 Локална папка за backup на PostgreSQL базата — **не** се следи от git (виж
 `.gitignore`), с изключение на този файл.
 
-- `mydigitallibrary.dump` се пише автоматично от `db-backup` service-а в
-  `docker-compose.yml` (custom-format `pg_dump`) — веднъж седмично или до
-  ~5 мин. след промяна в `works`/`editions` (добавяне/редакция/трил на
-  книга/издание), кой​то от двата случая настъпи първи.
+- Всеки backup се пише в **свой собствен файл**,
+  `mydigitallibrary_<UTC timestamp>.dump` (напр.
+  `mydigitallibrary_20260913T083920Z.dump`) — нищо никога не се
+  презаписва, всяка моментна снимка на базата си остава достъпна отделно.
+- Пише се автоматично от `db-backup` service-а в `docker-compose.yml`
+  (custom-format `pg_dump`) — до ~5 мин. след промяна в която и да е
+  таблица с реални данни (books/editions/authors/genres/library items/
+  reading sessions/wishlist/shelves/notes/quotes/reviews/ratings/loans/
+  reading goals/series/bookstore listings/import jobs — пълният списък е в
+  `docker/db-backup/backup.sh`), или поне веднъж седмично, което от двете
+  настъпи първо. Промяна засечена по време на "прозореца" от 5 мин. след
+  предходен backup не се пропуска — изчаква се прозорецът да мине и тогава
+  се прави backup, вместо тихо да се забрави (както в по-старата версия на
+  скрипта).
 - При старт на `db` service-а с **празен** `pgdata` volume (нов checkout,
   изтрит volume, нов хардуер) — `docker/db-init/10-restore-if-exists.sh`
-  автоматично възстановява базата от този файл, ако го намери; ако файлът
-  липсва, стартира с празна база.
+  автоматично възстановява базата от **най-новия** `.dump` файл в тази
+  папка (сортирано по име — timestamp форматът се сортира хронологично),
+  ако намери такъв; ако папката е празна, стартира с празна база.
 - Възстановяване работи само при **първо** стартиране на празен volume
   (postgres `docker-entrypoint-initdb.d` конвенция) — не презаписва
   съществуващи данни.
+- Backup-ите не се трият автоматично (няма retention policy засега) —
+  папката ще расте неограничено с активна употреба; ако това стане
+  проблем, добави периодично изтриване на по-старите файлове.
 
 Ръчен backup/restore (докато стекът работи):
 
 ```powershell
-docker compose exec db-backup sh -c 'pg_dump --format=custom --file=/backup/mydigitallibrary.dump "$POSTGRES_DB"'
-docker compose exec db pg_restore --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --no-owner --clean --if-exists /backup/mydigitallibrary.dump
+docker compose exec db-backup sh -c 'pg_dump --format=custom --file="/backup/mydigitallibrary_$(date -u +%Y%m%dT%H%M%SZ).dump" "$POSTGRES_DB"'
+docker compose exec db pg_restore --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --no-owner --clean --if-exists /backup/mydigitallibrary_<timestamp>.dump
 ```
