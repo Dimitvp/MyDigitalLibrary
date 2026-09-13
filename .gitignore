@@ -491,3 +491,7 @@ npm-debug.log*
 # root so it doesn't also match src/MyDigitalLibrary.Infrastructure/Import/Covers/
 /covers/
 /keys/
+
+# Local Postgres backup dump — host-only disaster-recovery file, never commit
+/db-backup/*
+!/db-backup/README.md

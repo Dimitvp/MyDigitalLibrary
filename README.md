@@ -94,6 +94,15 @@ docker compose up --build -d
 - `GET http://localhost:8081/health/ready`
 - `GET http://localhost:8081/openapi/v1.json` — OpenAPI документ (Development)
 
+Вдига се и `db-backup` service (Postgres-alpine sidecar, виж
+[db-backup/README.md](db-backup/README.md)) — пази `db-backup/mydigitallibrary.dump`
+(host bind mount, **не** се качва в git) свеж чрез `pg_dump`: до ~5 мин.
+след добавяне/редакция/трил на книга/издание (Postgres тригер + `LISTEN`/
+`NOTIFY` на `works`/`editions`, дебаунснат) или поне веднъж седмично, ако
+няма промени. При старт на `db` с празен `pgdata` volume (загубен/изтрит
+volume, нов хардуер) `docker/db-init/10-restore-if-exists.sh` автоматично
+възстановява от този файл, ако го намери — иначе старт с празна база.
+
 API-то (виж [docs/PLAN.md](docs/PLAN.md) т. 4/4.1 за пълния контракт):
 
 ```text
