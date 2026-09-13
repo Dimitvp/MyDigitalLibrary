@@ -98,16 +98,28 @@ public sealed class BookCatalogService(IApplicationDbContext db, ICoverDownloadQ
 
             isbn = isbnResult.Value;
 
-            var existingId = await db.Editions.AsNoTracking()
+            var duplicate = await db.Editions.AsNoTracking()
                 .Where(e => e.Isbn13 == isbn)
-                .Select(e => (Guid?)e.Id)
+                .Select(e => new { e.Id, e.WorkId })
                 .FirstOrDefaultAsync(ct);
 
-            if (existingId is { } duplicateId)
+            if (duplicate is not null)
+            {
+                var existingWorkTitle = await db.Works.AsNoTracking()
+                    .Where(w => w.Id == duplicate.WorkId)
+                    .Select(w => w.Title)
+                    .FirstOrDefaultAsync(ct);
+
                 throw new ConflictException(
                     "edition.duplicate",
-                    $"An edition with ISBN {isbn.Value} already exists.",
-                    new Dictionary<string, object?> { ["existingEditionId"] = duplicateId });
+                    $"An edition with ISBN {isbn.Value} already exists ({existingWorkTitle}).",
+                    new Dictionary<string, object?>
+                    {
+                        ["existingEditionId"] = duplicate.Id,
+                        ["existingWorkId"] = duplicate.WorkId,
+                        ["existingWorkTitle"] = existingWorkTitle,
+                    });
+            }
         }
 
         var edition = new Edition(workId, request.Format);

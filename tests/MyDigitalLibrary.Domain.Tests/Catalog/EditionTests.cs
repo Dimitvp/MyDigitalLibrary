@@ -20,6 +20,27 @@ public class EditionTests
     }
 
     [Fact]
+    public void SetIsbn_rejects_an_isbn_on_an_audiobook()
+    {
+        var edition = new Edition(Guid.NewGuid(), BookFormat.Audiobook);
+        var isbn = Isbn.TryCreate("9780441013593").Value;
+
+        var act = () => edition.SetIsbn(isbn);
+
+        act.Should().Throw<DomainException>().Where(e => e.ErrorCode == "edition.isbn_requires_print_or_ebook");
+    }
+
+    [Fact]
+    public void SetIsbn_allows_clearing_an_audiobooks_isbn()
+    {
+        var edition = new Edition(Guid.NewGuid(), BookFormat.Audiobook);
+
+        var act = () => edition.SetIsbn(null);
+
+        act.Should().NotThrow();
+    }
+
+    [Fact]
     public void SetCoverType_rejects_a_real_cover_type_on_a_non_physical_edition()
     {
         var edition = new Edition(Guid.NewGuid(), BookFormat.Ebook);

@@ -29,7 +29,7 @@
       </label>
 
       <label>
-        <span>{{ 'library.form.publicationYear' | transloco }}</span>
+        <span>{{ 'library.form.firstPublicationYear' | transloco }}</span>
         <input type="number" formControlName="firstPublicationYear" />
       </label>
 
@@ -51,10 +51,12 @@
     <section class="edit-section" [formGroup]="editionForm">
       <h2>{{ 'library.form.editionSection' | transloco }}</h2>
 
-      <label>
-        <span>{{ 'library.form.isbn' | transloco }}</span>
-        <input type="text" formControlName="isbn13" />
-      </label>
+      @if (format() !== 'Audiobook') {
+        <label>
+          <span>{{ 'library.form.isbn' | transloco }}</span>
+          <input type="text" formControlName="isbn13" />
+        </label>
+      }
 
       <label>
         <span>{{ 'library.form.publisher' | transloco }}</span>
@@ -63,7 +65,10 @@
 
       <label>
         <span>{{ 'library.form.language' | transloco }}</span>
-        <input type="text" formControlName="language" />
+        <select formControlName="language">
+          <option value="bg">BG</option>
+          <option value="en">EN</option>
+        </select>
       </label>
 
       <label>
@@ -72,7 +77,7 @@
       </label>
 
       <label>
-        <span>{{ 'library.form.publicationYear' | transloco }}</span>
+        <span>{{ 'library.form.editionPublicationYear' | transloco }}</span>
         <input type="number" formControlName="publicationYear" />
       </label>
 

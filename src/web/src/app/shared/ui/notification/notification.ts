@@ -10,7 +10,7 @@ import { NotificationService } from './notification.service';
     <div class="notification-list" role="status" aria-live="polite">
       @for (notification of notifications.notifications(); track notification.id) {
         <div class="notification">
-          <span>{{ notification.messageKey | transloco }}</span>
+          <span>{{ notification.messageKey | transloco: notification.params }}</span>
           <button type="button" (click)="notifications.dismiss(notification.id)" aria-label="dismiss">×</button>
         </div>
       }

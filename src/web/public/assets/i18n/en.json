@@ -22,7 +22,7 @@
       "title": "My Library",
       "empty": "You haven't added any books yet.",
       "add": "Add book",
-      "search": "Search by title...",
+      "search": "Search by title, author, or ISBN...",
       "totalBooks": "Total books",
       "noCover": "No cover",
       "currentlyReading": "Currently reading",
@@ -94,6 +94,8 @@
       "durationMinutes": "Duration (minutes)",
       "coverType": "Cover type",
       "publicationYear": "Publication year",
+      "firstPublicationYear": "First publication year (original)",
+      "editionPublicationYear": "This edition's publication year",
       "pageCount": "Page count",
       "acquiredOn": "Acquired on",
       "acquisitionMethod": "Acquisition method",
@@ -238,9 +240,10 @@
       "metadata_not_found": "Nothing was found for that ISBN."
     },
     "edition": {
-      "duplicate": "An edition with this ISBN already exists.",
+      "duplicate": "An edition with this ISBN already exists — see \"{{title}}\".",
       "not_found": "Edition not found.",
       "page_count_requires_print_or_ebook": "Page count only applies to physical/ebook editions.",
+      "isbn_requires_print_or_ebook": "ISBN only applies to physical/ebook editions.",
       "cover_type_requires_physical": "Cover type only applies to physical editions.",
       "audio_details_require_audiobook": "Narrator/duration only apply to audiobooks."
     },

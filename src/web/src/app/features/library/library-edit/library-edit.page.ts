@@ -145,7 +145,7 @@ export class LibraryEditPage {
         this.editionForm.setValue({
           isbn13: edition.isbn13 ?? '',
           publisher: edition.publisher ?? '',
-          language: edition.language ?? '',
+          language: edition.language === 'en' ? 'en' : 'bg',
           translator: edition.translator ?? '',
           publicationYear: edition.publicationYear,
           pageCount: edition.pageCount,
@@ -213,7 +213,7 @@ export class LibraryEditPage {
     this.savingEdition.set(true);
     this.catalog
       .updateEdition(edition.id, {
-        isbn13: raw.isbn13 || null,
+        isbn13: this.format() === 'Audiobook' ? null : raw.isbn13 || null,
         publisher: raw.publisher || null,
         language: raw.language || null,
         translator: raw.translator || null,

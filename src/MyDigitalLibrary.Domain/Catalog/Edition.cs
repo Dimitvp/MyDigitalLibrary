@@ -52,7 +52,13 @@ public sealed class Edition : Entity
          : Duration is { } duration ? EditionExtent.FromDuration(duration.Value)
          : null;
 
-    public void SetIsbn(Isbn? isbn) => Isbn13 = isbn;
+    public void SetIsbn(Isbn? isbn)
+    {
+        if (isbn is not null && Format == BookFormat.Audiobook)
+            throw new DomainException("edition.isbn_requires_print_or_ebook", "ISBN only applies to physical or ebook editions.");
+
+        Isbn13 = isbn;
+    }
 
     public void SetPublicationDetails(string? publisher, string? language, string? translator, int? publicationYear, int? pageCount)
     {

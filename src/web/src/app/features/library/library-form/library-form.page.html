@@ -45,10 +45,12 @@
     <fieldset>
       <legend>{{ 'library.form.isbn' | transloco }} / {{ 'library.form.publisher' | transloco }}</legend>
 
-      <label>
-        <span>{{ 'library.form.isbn' | transloco }}</span>
-        <input type="text" formControlName="isbn13" />
-      </label>
+      @if (selectedFormat() !== 'Audiobook') {
+        <label>
+          <span>{{ 'library.form.isbn' | transloco }}</span>
+          <input type="text" formControlName="isbn13" />
+        </label>
+      }
 
       <label>
         <span>{{ 'library.form.publisher' | transloco }}</span>

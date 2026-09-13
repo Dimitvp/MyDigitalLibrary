@@ -108,7 +108,7 @@ public sealed class CsvImportService(IApplicationDbContext db, BookCatalogServic
                 new CreateWorkRequest(row.Title, null, null, row.PublicationYear, row.AuthorNames, row.SeriesName, row.SeriesPosition), ct);
 
             var edition = new Edition(work.Id, row.Format);
-            edition.SetIsbn(isbn);
+            edition.SetIsbn(row.Format == BookFormat.Audiobook ? null : isbn);
             edition.SetPublicationDetails(row.Publisher, null, null, row.PublicationYear, row.Format == BookFormat.Audiobook ? null : row.PageCount);
             db.Editions.Add(edition);
 

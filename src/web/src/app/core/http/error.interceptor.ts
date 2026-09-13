@@ -45,7 +45,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
     const isAssetRequest = req.url.startsWith('/assets/');
     if (!isAssetRequest && error instanceof HttpErrorResponse && error.status !== 401) {
       const problem = error.error as ProblemDetails | null;
-      notifications.show(problem?.errorCode ? `errors.${problem.errorCode}` : 'errors.generic');
+      const params = typeof problem?.['existingWorkTitle'] === 'string' ? { title: problem['existingWorkTitle'] } : undefined;
+      notifications.show(problem?.errorCode ? `errors.${problem.errorCode}` : 'errors.generic', params);
     }
   }
 };

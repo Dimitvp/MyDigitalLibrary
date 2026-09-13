@@ -52,6 +52,20 @@ public sealed class LibraryItemEndpointsTests(ApiWebApplicationFactory factory) 
     }
 
     [Fact]
+    public async Task Listing_matches_q_against_isbn()
+    {
+        var client = await AuthenticatedClientAsync("list-isbn-search@test.local");
+        await CreateLibraryItemAsync(client, "Dune", ["Frank Herbert"], isbn13: "9780441013593");
+        await CreateLibraryItemAsync(client, "Foundation", ["Isaac Asimov"], isbn13: "9780553293357");
+
+        var byIsbnWithDashes = await client.GetFromJsonAsync<JsonElement>("/api/v1/library-items?q=" + Uri.EscapeDataString("978-0441-01359-3"));
+        var byIsbnSuffix = await client.GetFromJsonAsync<JsonElement>("/api/v1/library-items?q=013593");
+
+        byIsbnWithDashes.GetProperty("items").EnumerateArray().Should().ContainSingle(i => i.GetProperty("workTitle").GetString() == "Dune");
+        byIsbnSuffix.GetProperty("items").EnumerateArray().Should().ContainSingle(i => i.GetProperty("workTitle").GetString() == "Dune");
+    }
+
+    [Fact]
     public async Task Listing_can_be_filtered_by_genre()
     {
         var client = await AuthenticatedClientAsync("list-genre-filter@test.local");
@@ -119,12 +133,12 @@ public sealed class LibraryItemEndpointsTests(ApiWebApplicationFactory factory) 
     }
 
     private static async Task<(Guid WorkId, Guid LibraryItemId)> CreateLibraryItemAsync(
-        HttpClient client, string title, string[] authorNames, string[]? genreNames = null)
+        HttpClient client, string title, string[] authorNames, string[]? genreNames = null, string? isbn13 = null)
     {
         var response = await client.PostJsonAsync("/api/v1/library-items", new
         {
             work = new { title, authorNames, genreNames },
-            edition = new { },
+            edition = new { isbn13 },
             format = "Physical",
             acquisition = new { acquiredOn = "2026-01-01", method = "Bought" },
         });

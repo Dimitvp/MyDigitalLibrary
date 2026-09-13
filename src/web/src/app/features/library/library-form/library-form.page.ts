@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -63,6 +63,8 @@ export class LibraryFormPage {
     source: new FormControl('', { nonNullable: true }),
   });
 
+  protected readonly selectedFormat = toSignal(this.form.controls.format.valueChanges, { initialValue: this.form.controls.format.value });
+
   protected onCoverSelected(input: HTMLInputElement): void {
     const file = input.files?.[0] ?? null;
     this.coverFile.set(file);
@@ -94,7 +96,7 @@ export class LibraryFormPage {
         genreNames: genreNames.length > 0 ? genreNames : null,
       },
       edition: {
-        isbn13: raw.isbn13 || null,
+        isbn13: raw.format === 'Audiobook' ? null : raw.isbn13 || null,
         publisher: raw.publisher || null,
         language: raw.language || null,
         translator: null,

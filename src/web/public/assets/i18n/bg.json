@@ -22,7 +22,7 @@
       "title": "Моята библиотека",
       "empty": "Все още нямаш добавени книги.",
       "add": "Добави книга",
-      "search": "Търсене по заглавие...",
+      "search": "Търсене по заглавие, автор или ISBN...",
       "totalBooks": "Общо книги",
       "noCover": "Без корица",
       "currentlyReading": "В момента чета",
@@ -94,6 +94,8 @@
       "durationMinutes": "Продължителност (минути)",
       "coverType": "Тип корица",
       "publicationYear": "Година на издаване",
+      "firstPublicationYear": "Година на първото издание (оригинал)",
+      "editionPublicationYear": "Година на издаване на това издание",
       "pageCount": "Брой страници",
       "acquiredOn": "Дата на придобиване",
       "acquisitionMethod": "Начин на придобиване",
@@ -238,9 +240,10 @@
       "metadata_not_found": "Нищо не беше намерено за този ISBN."
     },
     "edition": {
-      "duplicate": "Вече има издание с този ISBN.",
+      "duplicate": "Вече има издание с този ISBN — виж „{{title}}“.",
       "not_found": "Изданието не е намерено.",
       "page_count_requires_print_or_ebook": "Брой страници важи само за хартиени/електронни издания.",
+      "isbn_requires_print_or_ebook": "ISBN важи само за хартиени/електронни издания.",
       "cover_type_requires_physical": "Тип корица важи само за хартиени издания.",
       "audio_details_require_audiobook": "Разказвач/продължителност важат само за аудиокниги."
     },

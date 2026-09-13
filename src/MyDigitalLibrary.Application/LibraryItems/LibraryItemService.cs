@@ -44,8 +44,30 @@ public sealed class LibraryItemService(IApplicationDbContext db, BookCatalogServ
             var pattern = TextSearch.WordPrefixPattern(q);
             var matchingAuthorIds = db.Authors.AsNoTracking().Where(a => Regex.IsMatch(a.FullName, pattern, RegexOptions.IgnoreCase)).Select(a => a.Id);
 
+            // ISBN search: Isbn13 is a scalar HasConversion type (see
+            // ExportService) — its .Value can't be unwrapped inside a
+            // translated Where(), so matching editions are found by fetching
+            // {Id, Isbn13} and filtering in-memory (cheap — editions with an
+            // ISBN are a bounded personal-library-sized set), then folded
+            // into the main query as an id list. Only kicks in once the
+            // query has a few digits in it, so plain title/author text never
+            // pays for the extra round trip.
+            var digits = new string(q.Where(char.IsDigit).ToArray());
+            List<Guid> isbnEditionIds = [];
+            if (digits.Length >= 3)
+            {
+                isbnEditionIds = (await db.Editions.AsNoTracking()
+                        .Where(e => e.Isbn13 != null)
+                        .Select(e => new { e.Id, e.Isbn13 })
+                        .ToListAsync(ct))
+                    .Where(e => e.Isbn13!.Value.Contains(digits))
+                    .Select(e => e.Id)
+                    .ToList();
+            }
+
             query = query.Where(li => editionsByWork.Any(x => x.EditionId == li.EditionId &&
-                (Regex.IsMatch(x.Title, pattern, RegexOptions.IgnoreCase) || x.Authors.Any(wa => matchingAuthorIds.Contains(wa.AuthorId)))));
+                (Regex.IsMatch(x.Title, pattern, RegexOptions.IgnoreCase) || x.Authors.Any(wa => matchingAuthorIds.Contains(wa.AuthorId))))
+                || isbnEditionIds.Contains(li.EditionId));
         }
 
         if (genreId is { } gId)
