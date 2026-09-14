@@ -22,42 +22,16 @@
           }
         </span>
 
-        <div class="cover-search">
-          <p class="hint">{{ 'wishlist.form.coverSearchHint' | transloco }}</p>
-          <div class="cover-search-row">
-            <input
-              type="text"
-              #coverQueryInput
-              [placeholder]="'import.search.placeholder' | transloco"
-              (keydown.enter)="searchCover(coverQueryInput.value)"
-            />
-            <button type="button" (click)="searchCover(coverQueryInput.value)" [disabled]="coverSearching()">
-              {{ 'import.search.submit' | transloco }}
-            </button>
-          </div>
-
-          @if (coverSearching()) {
-            <p class="status-text">{{ 'import.search.searching' | transloco }}</p>
-          }
-          @if (coverSearchError()) {
-            <p class="error">{{ coverSearchError() | transloco }}</p>
-          }
-
-          @if (coverCandidate(); as found) {
-            <div class="candidate">
-              @if (found.candidate.coverUrl) {
-                <img [src]="found.candidate.coverUrl" [alt]="found.candidate.title" class="candidate-cover" />
-              }
-              <div class="candidate-info">
-                <strong>{{ found.candidate.title }}</strong>
-                <span>{{ found.candidate.authorNames.join(', ') }}</span>
-              </div>
-              <button type="button" (click)="useCoverCandidate()" [disabled]="coverAttaching()">
-                {{ 'wishlist.form.useCover' | transloco }}
-              </button>
-            </div>
-          }
-        </div>
+        <label class="cover-upload">
+          {{ 'library.detail.changeCover' | transloco }}
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            #coverInput
+            (change)="onCoverSelected(coverInput)"
+            [disabled]="uploadingCover()"
+          />
+        </label>
       </div>
     </section>
 
@@ -74,11 +48,89 @@
         <input type="text" formControlName="authorNames" />
       </label>
 
+      <div class="genre-field">
+        <span>{{ 'library.form.genres' | transloco }}</span>
+        <app-genre-picker [selected]="selectedGenres()" (selectedChange)="onGenresChange($event)" />
+      </div>
+
       <div class="section-actions">
         <button type="button" (click)="saveWork()" [disabled]="workForm.invalid || savingWork()">
           {{ 'library.form.save' | transloco }}
         </button>
         @if (workSaved()) {
+          <span class="saved">{{ 'library.detail.noteSaved' | transloco }}</span>
+        }
+      </div>
+    </section>
+
+    <section class="edit-section" [formGroup]="editionForm">
+      <h2>{{ 'library.form.editionSection' | transloco }}</h2>
+
+      @if (format() !== 'Audiobook') {
+        <label>
+          <span>{{ 'library.form.isbn' | transloco }}</span>
+          <input type="text" formControlName="isbn13" />
+        </label>
+      }
+
+      <label>
+        <span>{{ 'library.form.publisher' | transloco }}</span>
+        <input type="text" formControlName="publisher" />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.language' | transloco }}</span>
+        <select formControlName="language">
+          <option value="bg">BG</option>
+          <option value="en">EN</option>
+        </select>
+      </label>
+
+      <label>
+        <span>{{ 'library.form.translator' | transloco }}</span>
+        <input type="text" formControlName="translator" />
+      </label>
+
+      <label>
+        <span>{{ 'library.form.editionPublicationYear' | transloco }}</span>
+        <input type="number" formControlName="publicationYear" />
+      </label>
+
+      @if (format() !== 'Audiobook') {
+        <label>
+          <span>{{ 'library.form.pageCount' | transloco }}</span>
+          <input type="number" formControlName="pageCount" />
+        </label>
+      }
+
+      @if (format() === 'Physical') {
+        <label>
+          <span>{{ 'library.form.coverType' | transloco }}</span>
+          <select formControlName="coverType">
+            @for (type of coverTypes; track type) {
+              <option [value]="type">{{ 'library.coverType.' + type | transloco }}</option>
+            }
+          </select>
+        </label>
+      }
+
+      @if (format() === 'Audiobook') {
+        <label>
+          <span>{{ 'library.form.narrator' | transloco }}</span>
+          <input type="text" formControlName="narrator" />
+        </label>
+
+        <label>
+          <span>{{ 'library.form.durationMinutes' | transloco }}</span>
+          <input type="number" formControlName="durationMinutes" />
+        </label>
+      }
+
+      <div class="section-actions">
+        <button type="button" (click)="saveEdition()" [disabled]="savingEdition()">
+          {{ 'library.form.save' | transloco }}
+        </button>
+        @if (editionSaved()) {
           <span class="saved">{{ 'library.detail.noteSaved' | transloco }}</span>
         }
       </div>

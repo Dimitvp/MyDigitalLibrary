@@ -1,12 +1,13 @@
 import { httpResource } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { Observable, map, of, switchMap, throwError } from 'rxjs';
 import { CatalogApiService } from '../../../core/api/catalog-api.service';
-import type { BookFormat, ImportLookupResult, WishlistEntry, WorkDetail } from '../../../core/api/models';
-import { ImportApiService } from '../../import/import-api.service';
+import type { BookFormat, CoverType, Edition, WishlistEntry, WorkDetail } from '../../../core/api/models';
+import { GenrePickerComponent } from '../../../shared/ui/genre-picker/genre-picker.component';
 import { WishlistApiService } from '../wishlist-api.service';
 
 interface WorkFormControls {
@@ -23,9 +24,21 @@ interface WishFormControls {
   isOutOfStock: FormControl<boolean>;
 }
 
+interface EditionFormControls {
+  isbn13: FormControl<string>;
+  publisher: FormControl<string>;
+  language: FormControl<string>;
+  translator: FormControl<string>;
+  publicationYear: FormControl<number | null>;
+  pageCount: FormControl<number | null>;
+  coverType: FormControl<CoverType>;
+  narrator: FormControl<string>;
+  durationMinutes: FormControl<number | null>;
+}
+
 @Component({
   selector: 'app-wishlist-edit-page',
-  imports: [ReactiveFormsModule, TranslocoPipe, RouterLink],
+  imports: [ReactiveFormsModule, TranslocoPipe, RouterLink, GenrePickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './wishlist-edit.page.html',
   styleUrl: './wishlist-edit.page.scss',
@@ -35,7 +48,6 @@ export class WishlistEditPage {
   private readonly router = inject(Router);
   private readonly api = inject(WishlistApiService);
   private readonly catalog = inject(CatalogApiService);
-  private readonly importApi = inject(ImportApiService);
   private readonly transloco = inject(TranslocoService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -43,6 +55,7 @@ export class WishlistEditPage {
 
   protected readonly formats: readonly BookFormat[] = ['Physical', 'Ebook', 'Audiobook'];
   protected readonly priorities = [1, 2, 3, 4, 5];
+  protected readonly coverTypes: readonly CoverType[] = ['Unknown', 'Hardcover', 'Paperback'];
 
   protected readonly entryResource = httpResource<WishlistEntry | null>(() => `/api/v1/wishlist/${this.id}`, {
     defaultValue: null,
@@ -56,21 +69,36 @@ export class WishlistEditPage {
     { defaultValue: null },
   );
 
+  protected readonly editionResource = httpResource<Edition | null>(
+    () => {
+      const entry = this.entryResource.value();
+      return entry?.preferredEditionId ? `/api/v1/editions/${entry.preferredEditionId}` : undefined;
+    },
+    { defaultValue: null },
+  );
+
+  // Wishes may not have a preferred edition yet, so there's no fixed format
+  // to read until one exists — fall back to the desired format so the
+  // edition fields (ISBN vs narrator/duration, etc.) still show correctly.
+  protected readonly format = computed<BookFormat>(
+    () => this.editionResource.value()?.format ?? this.entryResource.value()?.desiredFormat ?? 'Physical',
+  );
+
   protected readonly coverImageUrl = signal<string | null>(null);
+  protected readonly uploadingCover = signal(false);
+  protected readonly selectedGenres = signal<readonly string[]>([]);
   protected readonly deleting = signal(false);
   protected readonly savingWork = signal(false);
   protected readonly workSaved = signal(false);
   protected readonly savingWish = signal(false);
   protected readonly wishSaved = signal(false);
-
-  protected readonly coverSearching = signal(false);
-  protected readonly coverSearchError = signal<string | null>(null);
-  protected readonly coverCandidate = signal<ImportLookupResult | null>(null);
-  protected readonly coverAttaching = signal(false);
+  protected readonly savingEdition = signal(false);
+  protected readonly editionSaved = signal(false);
 
   private workInitialized = false;
   private wishInitialized = false;
   private coverInitialized = false;
+  private editionInitialized = false;
 
   protected readonly workForm = new FormGroup<WorkFormControls>({
     title: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -86,6 +114,18 @@ export class WishlistEditPage {
     isOutOfStock: new FormControl(false, { nonNullable: true }),
   });
 
+  protected readonly editionForm = new FormGroup<EditionFormControls>({
+    isbn13: new FormControl('', { nonNullable: true }),
+    publisher: new FormControl('', { nonNullable: true }),
+    language: new FormControl('', { nonNullable: true }),
+    translator: new FormControl('', { nonNullable: true }),
+    publicationYear: new FormControl<number | null>(null),
+    pageCount: new FormControl<number | null>(null),
+    coverType: new FormControl<CoverType>('Unknown', { nonNullable: true }),
+    narrator: new FormControl('', { nonNullable: true }),
+    durationMinutes: new FormControl<number | null>(null),
+  });
+
   constructor() {
     effect(() => {
       const work = this.workResource.value();
@@ -95,6 +135,7 @@ export class WishlistEditPage {
           title: work.title,
           authorNames: work.authors.map((a) => a.fullName).join(', '),
         });
+        this.selectedGenres.set(work.genreNames);
       }
     });
 
@@ -115,11 +156,39 @@ export class WishlistEditPage {
         this.coverInitialized = true;
         this.coverImageUrl.set(entry.coverImageUrl);
       }
+      // No preferred edition yet — leave the edition form at its defaults
+      // rather than waiting forever on editionResource to populate it.
+      if (entry && !entry.preferredEditionId && !this.editionInitialized) {
+        this.editionInitialized = true;
+      }
+    });
+
+    effect(() => {
+      const edition = this.editionResource.value();
+      if (edition && !this.editionInitialized) {
+        this.editionInitialized = true;
+        this.editionForm.setValue({
+          isbn13: edition.isbn13 ?? '',
+          publisher: edition.publisher ?? '',
+          language: edition.language === 'en' ? 'en' : 'bg',
+          translator: edition.translator ?? '',
+          publicationYear: edition.publicationYear,
+          pageCount: edition.pageCount,
+          coverType: edition.coverType,
+          narrator: edition.narrator ?? '',
+          durationMinutes: edition.durationMinutes,
+        });
+      }
     });
   }
 
   protected priorityLabel(priority: number): string {
     return this.transloco.translate(`wishlist.priorityLevel.${priority}`);
+  }
+
+  protected onGenresChange(names: readonly string[]): void {
+    this.selectedGenres.set(names);
+    this.workSaved.set(false);
   }
 
   protected saveWork(): void {
@@ -134,7 +203,7 @@ export class WishlistEditPage {
         originalTitle: work.originalTitle,
         description: work.description,
         firstPublicationYear: work.firstPublicationYear,
-        genreNames: work.genreNames,
+        genreNames: this.selectedGenres(),
         authorNames: raw.authorNames
           .split(',')
           .map((name) => name.trim())
@@ -175,74 +244,98 @@ export class WishlistEditPage {
       });
   }
 
-  protected searchCover(rawQuery: string): void {
-    const query = rawQuery.trim();
-    if (!query || this.coverSearching()) return;
-
-    const isUrl = /^https?:\/\//i.test(query);
-    this.coverSearching.set(true);
-    this.coverSearchError.set(null);
-    this.coverCandidate.set(null);
-
-    this.importApi
-      .lookup(isUrl ? { url: query, isbn: null } : { url: null, isbn: query })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (result) => {
-          this.coverSearching.set(false);
-          this.coverCandidate.set(result);
-        },
-        error: () => {
-          this.coverSearching.set(false);
-          this.coverSearchError.set('import.search.notFound');
-        },
-      });
+  private linkEdition(editionId: string): Observable<WishlistEntry> {
+    const entry = this.entryResource.value()!;
+    return this.api.update(this.id, {
+      desiredFormat: entry.desiredFormat,
+      priority: entry.priority,
+      preferredEditionId: editionId,
+      maxPrice: entry.maxPrice,
+      note: entry.note,
+      isOutOfStock: entry.isOutOfStock,
+    });
   }
 
-  protected useCoverCandidate(): void {
+  // Wishlist entries only get an edition once the user attaches a cover or
+  // fills in edition details — until then preferredEditionId is null, so
+  // both actions need to lazily create one on first use.
+  private ensureEditionId(): Observable<string> {
     const entry = this.entryResource.value();
-    const found = this.coverCandidate();
-    if (!entry || !found || this.coverAttaching()) return;
+    if (!entry) return throwError(() => new Error('Wishlist entry not loaded'));
+    if (entry.preferredEditionId) return of(entry.preferredEditionId);
 
-    this.coverAttaching.set(true);
-    this.catalog
+    return this.catalog
       .createEdition(entry.workId, {
         format: entry.desiredFormat,
-        isbn13: found.isbn13,
-        publisher: found.candidate.publisher,
-        language: found.candidate.language,
+        isbn13: null,
+        publisher: null,
+        language: null,
         translator: null,
-        publicationYear: found.candidate.publicationYear,
-        pageCount: found.candidate.pageCount,
+        publicationYear: null,
+        pageCount: null,
         coverType: null,
         narrator: null,
         durationMinutes: null,
-        coverUrl: found.candidate.coverUrl,
+        coverUrl: null,
       })
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(switchMap((created) => this.linkEdition(created.id).pipe(map(() => created.id))));
+  }
+
+  protected onCoverSelected(input: HTMLInputElement): void {
+    const file = input.files?.[0];
+    if (!file || this.uploadingCover()) return;
+
+    this.uploadingCover.set(true);
+    this.ensureEditionId()
+      .pipe(
+        switchMap((editionId) => this.catalog.uploadCover(editionId, file)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
-        next: (edition) => {
-          this.api
-            .update(this.id, {
-              desiredFormat: entry.desiredFormat,
-              priority: entry.priority,
-              preferredEditionId: edition.id,
-              maxPrice: entry.maxPrice,
-              note: entry.note,
-              isOutOfStock: entry.isOutOfStock,
-            })
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-              next: () => {
-                this.coverAttaching.set(false);
-                this.coverImageUrl.set(found.candidate.coverUrl);
-                this.coverCandidate.set(null);
-              },
-              error: () => this.coverAttaching.set(false),
-            });
+        next: (res) => {
+          this.uploadingCover.set(false);
+          this.coverImageUrl.set(res.coverImageUrl);
+          input.value = '';
+          this.entryResource.reload();
         },
-        error: () => this.coverAttaching.set(false),
+        error: () => this.uploadingCover.set(false),
       });
+  }
+
+  protected saveEdition(): void {
+    const entry = this.entryResource.value();
+    if (!entry || this.savingEdition()) return;
+
+    const raw = this.editionForm.getRawValue();
+    const isAudiobook = this.format() === 'Audiobook';
+    const payload = {
+      isbn13: isAudiobook ? null : raw.isbn13 || null,
+      publisher: raw.publisher || null,
+      language: raw.language || null,
+      translator: raw.translator || null,
+      publicationYear: raw.publicationYear,
+      pageCount: isAudiobook ? null : raw.pageCount,
+      coverType: this.format() === 'Physical' ? raw.coverType : ('Unknown' as CoverType),
+      narrator: isAudiobook ? raw.narrator || null : null,
+      durationMinutes: isAudiobook ? raw.durationMinutes : null,
+    };
+
+    this.savingEdition.set(true);
+
+    const save$: Observable<unknown> = entry.preferredEditionId
+      ? this.catalog.updateEdition(entry.preferredEditionId, payload)
+      : this.catalog
+          .createEdition(entry.workId, { format: entry.desiredFormat, ...payload, coverUrl: null })
+          .pipe(switchMap((created) => this.linkEdition(created.id)));
+
+    save$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.savingEdition.set(false);
+        this.editionSaved.set(true);
+        this.entryResource.reload();
+      },
+      error: () => this.savingEdition.set(false),
+    });
   }
 
   protected delete(): void {

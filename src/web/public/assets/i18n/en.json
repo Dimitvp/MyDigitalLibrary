@@ -178,9 +178,7 @@
       "isOutOfStock": "Currently out of stock everywhere",
       "note": "Note",
       "save": "Add",
-      "wishSection": "Wish",
-      "coverSearchHint": "Look the book up by ISBN or link to attach a cover.",
-      "useCover": "Use this cover"
+      "wishSection": "Wish"
     },
     "fulfill": {
       "title": "Move to \"I have it\"",
