@@ -204,7 +204,7 @@ public sealed class BookCatalogService(IApplicationDbContext db, ICoverDownloadQ
 
         var editions = await db.Editions.AsNoTracking()
             .Where(e => ids.Contains(e.Id))
-            .Select(e => new { e.Id, e.WorkId, e.CoverImageUrl, e.Language })
+            .Select(e => new { e.Id, e.WorkId, e.CoverImageUrl, e.Language, e.CoverType })
             .ToListAsync(ct);
 
         var workInfo = await GetWorkDisplayInfoAsync(editions.Select(e => e.WorkId), ct);
@@ -217,7 +217,8 @@ public sealed class BookCatalogService(IApplicationDbContext db, ICoverDownloadQ
                 e.CoverImageUrl?.ToString(),
                 e.Language,
                 workInfo.TryGetValue(e.WorkId, out var w3) ? w3.GenreNames : [],
-                e.WorkId));
+                e.WorkId,
+                e.CoverType));
     }
 
     /// <summary>Denormalized title/authors/genres for a batch of works — same reason as <see cref="GetEditionDisplayInfoAsync"/>.</summary>
@@ -259,6 +260,7 @@ public sealed record EditionDisplayInfo(
     string? CoverImageUrl,
     string? Language,
     IReadOnlyList<string> GenreNames,
-    Guid WorkId = default);
+    Guid WorkId = default,
+    CoverType CoverType = CoverType.Unknown);
 
 public sealed record WorkDisplayInfo(string Title, IReadOnlyList<string> AuthorNames, IReadOnlyList<string> GenreNames);

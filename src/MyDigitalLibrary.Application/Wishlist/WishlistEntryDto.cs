@@ -21,7 +21,8 @@ public sealed record WishlistEntryDto(
     IReadOnlyList<string> AuthorNames,
     string? CoverImageUrl,
     string? Language,
-    IReadOnlyList<string> GenreNames);
+    IReadOnlyList<string> GenreNames,
+    CoverType? CoverType);
 
 /// <summary>oneOf: either WorkId (existing work) or Work (create a new one) — see plan section 4.1.</summary>
 public sealed record CreateWishlistEntryRequest(
@@ -61,5 +62,6 @@ public static class WishlistEntryMapper
         entry.MaxPrice is null ? null : new MoneyDto(entry.MaxPrice.Amount, entry.MaxPrice.CurrencyCode),
         entry.Note, entry.AddedOn, entry.IsFulfilled, entry.IsOutOfStock,
         displayInfo.Title, displayInfo.AuthorNames,
-        editionInfo?.CoverImageUrl, editionInfo?.Language, displayInfo.GenreNames);
+        editionInfo?.CoverImageUrl, editionInfo?.Language, displayInfo.GenreNames,
+        editionInfo?.CoverType);
 }

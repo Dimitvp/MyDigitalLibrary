@@ -139,6 +139,9 @@
                           <span class="meta-row">
                             <span class="format">{{ 'library.format.' + entry.desiredFormat | transloco }}</span>
                             <span class="pill-group">
+                              @if (entry.coverType && entry.coverType !== 'Unknown') {
+                                <span class="pill cover-type">{{ 'library.coverType.' + entry.coverType | transloco }}</span>
+                              }
                               @if (entryLanguageLabel(entry.language); as langLabel) {
                                 <span class="pill lang">{{ langLabel }}</span>
                               }

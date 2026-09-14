@@ -179,6 +179,7 @@ export interface WishlistEntry {
   coverImageUrl: string | null;
   language: string | null;
   genreNames: readonly string[];
+  coverType: CoverType | null;
 }
 
 export interface CreateWishlistEntryRequest {

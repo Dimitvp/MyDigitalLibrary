@@ -360,6 +360,7 @@
       &.lang { background: var(--surface-2); color: var(--leather); border: 1px solid var(--line); }
       &.priority { background: var(--status-borrowed-bg); color: var(--status-borrowed-fg); cursor: help; }
       &.price { background: var(--status-owned-bg); color: var(--status-owned-fg); }
+      &.cover-type { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); }
     }
 
     .note {
