@@ -191,6 +191,8 @@ export interface CreateWishlistEntryRequest {
   maxPrice: Money | null;
   note: string | null;
   isOutOfStock: boolean;
+  isbn13?: string | null;
+  language?: string | null;
 }
 
 export interface UpdateWishlistEntryRequest {

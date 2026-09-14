@@ -259,7 +259,8 @@
     "wishlist_entry": {
       "not_found": "Entry not found.",
       "invalid_work_reference": "Provide either workId or work, but not both.",
-      "already_fulfilled": "This wishlist entry has already been fulfilled."
+      "already_fulfilled": "This wishlist entry has already been fulfilled.",
+      "already_owned": "You already have \"{{title}}\" in your library."
     },
     "genre": {
       "not_found": "Category not found.",

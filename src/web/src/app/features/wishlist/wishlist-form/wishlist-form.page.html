@@ -13,6 +13,20 @@
     </label>
 
     <label>
+      <span>{{ 'library.form.isbn' | transloco }}</span>
+      <input type="text" formControlName="isbn13" />
+    </label>
+
+    <label>
+      <span>{{ 'library.form.language' | transloco }}</span>
+      <select formControlName="language">
+        <option value="">—</option>
+        <option value="bg">BG</option>
+        <option value="en">EN</option>
+      </select>
+    </label>
+
+    <label>
       <span>{{ 'wishlist.form.format' | transloco }}</span>
       <select formControlName="desiredFormat">
         @for (format of formats; track format) {

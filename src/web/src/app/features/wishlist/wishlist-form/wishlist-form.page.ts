@@ -9,6 +9,8 @@ import { WishlistApiService } from '../wishlist-api.service';
 interface WishlistFormControls {
   workTitle: FormControl<string>;
   authorNames: FormControl<string>;
+  isbn13: FormControl<string>;
+  language: FormControl<string>;
   desiredFormat: FormControl<BookFormat>;
   priority: FormControl<number>;
   note: FormControl<string>;
@@ -35,6 +37,8 @@ export class WishlistFormPage {
   protected readonly form = new FormGroup<WishlistFormControls>({
     workTitle: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     authorNames: new FormControl('', { nonNullable: true }),
+    isbn13: new FormControl('', { nonNullable: true }),
+    language: new FormControl('', { nonNullable: true }),
     desiredFormat: new FormControl<BookFormat>('Physical', { nonNullable: true }),
     priority: new FormControl(3, { nonNullable: true, validators: [Validators.required] }),
     note: new FormControl('', { nonNullable: true }),
@@ -73,6 +77,8 @@ export class WishlistFormPage {
       maxPrice: null,
       note: raw.note || null,
       isOutOfStock: false,
+      isbn13: raw.isbn13 || null,
+      language: raw.language || null,
     };
 
     this.api

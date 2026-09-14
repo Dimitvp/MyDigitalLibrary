@@ -5,6 +5,7 @@ using MyDigitalLibrary.Application.Catalog;
 using MyDigitalLibrary.Application.Common;
 using MyDigitalLibrary.Application.Import;
 using MyDigitalLibrary.Application.LibraryItems;
+using MyDigitalLibrary.Domain.Enums;
 using MyDigitalLibrary.Domain.ValueObjects;
 
 namespace MyDigitalLibrary.Application.Wishlist;
@@ -41,11 +42,12 @@ public sealed class WishlistService(IApplicationDbContext db, BookCatalogService
             throw new AppValidationException("wishlist_entry.invalid_work_reference", "Provide either workId or work, but not both.");
 
         Guid workId;
+        string? title;
 
         if (request.WorkId is { } existingWorkId)
         {
-            var exists = await db.Works.AsNoTracking().AnyAsync(w => w.Id == existingWorkId, ct);
-            if (!exists)
+            title = await db.Works.AsNoTracking().Where(w => w.Id == existingWorkId).Select(w => w.Title).FirstOrDefaultAsync(ct);
+            if (title is null)
                 throw new NotFoundException("work.not_found", $"Work '{existingWorkId}' was not found.");
 
             workId = existingWorkId;
@@ -54,6 +56,29 @@ public sealed class WishlistService(IApplicationDbContext db, BookCatalogService
         {
             var work = await catalog.ResolveOrCreateWorkAsync(request.Work!, ct);
             workId = work.Id;
+            title = work.Title;
+        }
+
+        await EnsureNotAlreadyOwnedAsync(title, request.Isbn13, request.Language, userId, ct);
+
+        // If the caller already typed an ISBN/language on the add form, keep
+        // it — creating the edition right away instead of discarding those
+        // values and forcing the user to retype them on the edit page.
+        var preferredEditionId = request.PreferredEditionId;
+        if (preferredEditionId is null && (!string.IsNullOrWhiteSpace(request.Isbn13) || !string.IsNullOrWhiteSpace(request.Language)))
+        {
+            var edition = await catalog.CreateEditionAsync(workId, new CreateEditionRequest(
+                request.DesiredFormat,
+                Isbn13: request.Isbn13,
+                Publisher: null,
+                Language: request.Language,
+                Translator: null,
+                PublicationYear: null,
+                PageCount: null,
+                CoverType: null,
+                Narrator: null,
+                DurationMinutes: null), ct);
+            preferredEditionId = edition.Id;
         }
 
         var entry = new Domain.Library.WishlistEntry(
@@ -62,7 +87,7 @@ public sealed class WishlistService(IApplicationDbContext db, BookCatalogService
             request.DesiredFormat,
             request.Priority,
             DateOnly.FromDateTime(DateTime.UtcNow),
-            request.PreferredEditionId,
+            preferredEditionId,
             request.MaxPrice is null ? null : new Money(request.MaxPrice.Amount, request.MaxPrice.CurrencyCode),
             request.Note,
             request.IsOutOfStock);
@@ -72,14 +97,73 @@ public sealed class WishlistService(IApplicationDbContext db, BookCatalogService
 
         var displayInfo = await catalog.GetWorkDisplayInfoAsync([workId], ct);
         EditionDisplayInfo? editionInfo = null;
-        if (entry.PreferredEditionId is { } preferredEditionId)
+        if (entry.PreferredEditionId is { } linkedEditionId)
         {
-            var editionDisplay = await catalog.GetEditionDisplayInfoAsync([preferredEditionId], ct);
-            editionInfo = editionDisplay.GetValueOrDefault(preferredEditionId);
+            var editionDisplay = await catalog.GetEditionDisplayInfoAsync([linkedEditionId], ct);
+            editionInfo = editionDisplay.GetValueOrDefault(linkedEditionId);
         }
 
         return WishlistEntryMapper.ToDto(entry, displayInfo.GetValueOrDefault(workId, EmptyDisplayInfo), editionInfo);
     }
+
+    /// <summary>
+    /// Blocks adding a wish for a book already in "Имам я" (LibraryItems),
+    /// checked by title and ISBN. Sold/GivenAway items don't count — the user
+    /// no longer has those, so wanting one again is legitimate. An exact ISBN
+    /// match always blocks. A title match blocks too, UNLESS the caller named
+    /// a language that is known to differ from every owned copy's language —
+    /// owning a Bulgarian edition doesn't make wanting the English one a
+    /// duplicate, but we only know that when both languages are actually known.
+    /// </summary>
+    private async Task EnsureNotAlreadyOwnedAsync(string? title, string? isbn13, string? language, Guid userId, CancellationToken ct)
+    {
+        Isbn? requestedIsbn = null;
+        if (!string.IsNullOrWhiteSpace(isbn13))
+        {
+            var isbnResult = Isbn.TryCreate(isbn13);
+            if (isbnResult.IsSuccess)
+                requestedIsbn = isbnResult.Value;
+        }
+
+        if (requestedIsbn is null && string.IsNullOrWhiteSpace(title))
+            return;
+
+        var owned = await (
+            from li in db.LibraryItems
+            join e in db.Editions on li.EditionId equals e.Id
+            join w in db.Works on e.WorkId equals w.Id
+            where li.UserId == userId && li.Status != OwnershipStatus.Sold && li.Status != OwnershipStatus.GivenAway
+            select new { w.Id, w.Title, e.Isbn13, e.Language })
+            .AsNoTracking()
+            .ToListAsync(ct);
+
+        if (requestedIsbn is not null)
+        {
+            var isbnMatch = owned.FirstOrDefault(o => o.Isbn13 == requestedIsbn);
+            if (isbnMatch is not null)
+                throw AlreadyOwned(isbnMatch.Id, isbnMatch.Title);
+        }
+
+        if (!string.IsNullOrWhiteSpace(title))
+        {
+            var trimmedTitle = title.Trim();
+            var titleMatches = owned.Where(o => string.Equals(o.Title.Trim(), trimmedTitle, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (titleMatches.Count > 0)
+            {
+                var knownToBeDifferentLanguage = !string.IsNullOrWhiteSpace(language)
+                    && titleMatches.All(o => !string.IsNullOrWhiteSpace(o.Language) && !string.Equals(o.Language, language, StringComparison.OrdinalIgnoreCase));
+
+                if (!knownToBeDifferentLanguage)
+                    throw AlreadyOwned(titleMatches[0].Id, titleMatches[0].Title);
+            }
+        }
+    }
+
+    private static ConflictException AlreadyOwned(Guid workId, string title) =>
+        new("wishlist_entry.already_owned",
+            $"You already have '{title}' in your library.",
+            new Dictionary<string, object?> { ["existingWorkId"] = workId, ["existingWorkTitle"] = title });
 
     public async Task<WishlistEntryDto> GetAsync(Guid id, Guid userId, CancellationToken ct)
     {

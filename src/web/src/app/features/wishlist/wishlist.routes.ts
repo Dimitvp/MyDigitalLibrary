@@ -17,4 +17,8 @@ export const wishlistRoutes: Routes = [
     path: ':id/fulfill',
     loadComponent: () => import('./wishlist-fulfill/wishlist-fulfill.page').then((m) => m.WishlistFulfillPage),
   },
+  {
+    path: ':id',
+    loadComponent: () => import('./wishlist-detail/wishlist-detail.page').then((m) => m.WishlistDetailPage),
+  },
 ];

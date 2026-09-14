@@ -24,7 +24,12 @@ public sealed record WishlistEntryDto(
     IReadOnlyList<string> GenreNames,
     CoverType? CoverType);
 
-/// <summary>oneOf: either WorkId (existing work) or Work (create a new one) — see plan section 4.1.</summary>
+/// <summary>
+/// oneOf: either WorkId (existing work) or Work (create a new one) — see plan section 4.1.
+/// Isbn13/Language aren't persisted here (a wishlist entry has no edition of
+/// its own until PreferredEditionId is set later) — they only feed the
+/// already-owned check in WishlistService.CreateAsync.
+/// </summary>
 public sealed record CreateWishlistEntryRequest(
     Guid? WorkId,
     CreateWorkRequest? Work,
@@ -33,7 +38,9 @@ public sealed record CreateWishlistEntryRequest(
     Guid? PreferredEditionId,
     MoneyDto? MaxPrice,
     string? Note,
-    bool IsOutOfStock = false);
+    bool IsOutOfStock = false,
+    string? Isbn13 = null,
+    string? Language = null);
 
 public sealed record FulfillWishlistEntryRequest(Guid EditionId, AcquisitionDto Acquisition, PhysicalLocationDto? Location);
 

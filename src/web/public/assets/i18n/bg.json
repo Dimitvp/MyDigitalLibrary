@@ -259,7 +259,8 @@
     "wishlist_entry": {
       "not_found": "Записът не е намерен.",
       "invalid_work_reference": "Подай или workId, или work, но не и двете.",
-      "already_fulfilled": "Това желание вече е изпълнено."
+      "already_fulfilled": "Това желание вече е изпълнено.",
+      "already_owned": "Вече имаш „{{title}}“ в библиотеката си."
     },
     "genre": {
       "not_found": "Категорията не е намерена.",
