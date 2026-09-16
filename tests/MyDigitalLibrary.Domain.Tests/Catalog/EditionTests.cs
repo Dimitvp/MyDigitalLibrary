@@ -115,6 +115,55 @@ public class EditionTests
     }
 
     [Fact]
+    public void ChangeFormat_clears_isbn_and_page_count_when_switching_to_audiobook()
+    {
+        var edition = new Edition(Guid.NewGuid(), BookFormat.Ebook);
+        edition.SetIsbn(Isbn.TryCreate("9780441013593").Value);
+        edition.SetPublicationDetails(null, null, null, null, pageCount: 412);
+
+        edition.ChangeFormat(BookFormat.Audiobook);
+
+        edition.Format.Should().Be(BookFormat.Audiobook);
+        edition.Isbn13.Should().BeNull();
+        edition.PageCount.Should().BeNull();
+    }
+
+    [Fact]
+    public void ChangeFormat_clears_narrator_and_duration_when_switching_away_from_audiobook()
+    {
+        var edition = new Edition(Guid.NewGuid(), BookFormat.Audiobook);
+        edition.SetAudioDetails("Narrator", new AudioDuration(TimeSpan.FromHours(10)));
+
+        edition.ChangeFormat(BookFormat.Ebook);
+
+        edition.Format.Should().Be(BookFormat.Ebook);
+        edition.Narrator.Should().BeNull();
+        edition.Duration.Should().BeNull();
+    }
+
+    [Fact]
+    public void ChangeFormat_resets_cover_type_when_switching_away_from_physical()
+    {
+        var edition = new Edition(Guid.NewGuid(), BookFormat.Physical);
+        edition.SetCoverType(CoverType.Hardcover);
+
+        edition.ChangeFormat(BookFormat.Ebook);
+
+        edition.CoverType.Should().Be(CoverType.Unknown);
+    }
+
+    [Fact]
+    public void ChangeFormat_to_the_same_format_is_a_no_op()
+    {
+        var edition = new Edition(Guid.NewGuid(), BookFormat.Physical);
+        edition.SetCoverType(CoverType.Hardcover);
+
+        edition.ChangeFormat(BookFormat.Physical);
+
+        edition.CoverType.Should().Be(CoverType.Hardcover, "an unchanged format must not clear anything");
+    }
+
+    [Fact]
     public void Manually_edited_publisher_survives_a_subsequent_enrichment()
     {
         var edition = new Edition(Guid.NewGuid(), BookFormat.Physical);

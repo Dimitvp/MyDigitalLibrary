@@ -49,5 +49,11 @@ public static class LibraryItemEndpoints
             await service.UpdateStatusAsync(id, request.Status, currentUser.UserId, ct);
             return Results.NoContent();
         }).AddEndpointFilter<AntiforgeryFilter>();
+
+        group.MapPatch("/{id:guid}/format", async (Guid id, UpdateFormatRequest request, LibraryItemService service, ICurrentUser currentUser, CancellationToken ct) =>
+        {
+            await service.ChangeFormatAsync(id, request.Format, currentUser.UserId, ct);
+            return Results.NoContent();
+        }).AddEndpointFilter<AntiforgeryFilter>();
     }
 }

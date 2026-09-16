@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import type { Acquisition, CreateLibraryItemRequest, LibraryItem, OwnershipStatus, PagedResult } from '../../core/api/models';
+import type { Acquisition, BookFormat, CreateLibraryItemRequest, LibraryItem, OwnershipStatus, PagedResult } from '../../core/api/models';
 
 export interface ListLibraryItemsParams {
   q?: string;
@@ -45,6 +45,10 @@ export class LibraryApiService {
 
   updateStatus(id: string, status: OwnershipStatus): Observable<void> {
     return this.http.patch<void>(`${this.baseUrl}/${id}/status`, { status });
+  }
+
+  updateFormat(id: string, format: BookFormat): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/${id}/format`, { format });
   }
 
   delete(id: string): Observable<void> {

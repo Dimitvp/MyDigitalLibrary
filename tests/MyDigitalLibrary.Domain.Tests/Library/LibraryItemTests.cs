@@ -42,6 +42,29 @@ public class LibraryItemTests
     }
 
     [Fact]
+    public void ChangeFormat_clears_location_when_switching_away_from_physical()
+    {
+        var item = CreateItem(BookFormat.Physical);
+        item.SetLocation(new PhysicalLocation("Office", "Shelf 3", null));
+
+        item.ChangeFormat(BookFormat.Ebook);
+
+        item.Format.Should().Be(BookFormat.Ebook);
+        item.Location.Should().BeNull();
+    }
+
+    [Fact]
+    public void ChangeFormat_to_the_same_format_is_a_no_op()
+    {
+        var item = CreateItem(BookFormat.Physical);
+        item.SetLocation(new PhysicalLocation("Office", "Shelf 3", null));
+
+        item.ChangeFormat(BookFormat.Physical);
+
+        item.Location.Should().NotBeNull("an unchanged format must not clear the location");
+    }
+
+    [Fact]
     public void UpdateAcquisition_replaces_the_acquisition()
     {
         var item = CreateItem(BookFormat.Physical);

@@ -94,7 +94,18 @@
 
         <dl>
           <dt>{{ 'library.form.format' | transloco }}</dt>
-          <dd>{{ 'library.format.' + item.format | transloco }}</dd>
+          <dd>
+            <select
+              class="format-select"
+              [value]="item.format"
+              [disabled]="changingFormat()"
+              (change)="onFormatChange($any($event.target).value)"
+            >
+              <option value="Physical">{{ 'library.format.Physical' | transloco }}</option>
+              <option value="Ebook">{{ 'library.format.Ebook' | transloco }}</option>
+              <option value="Audiobook">{{ 'library.format.Audiobook' | transloco }}</option>
+            </select>
+          </dd>
 
           @if (editionResource.value(); as edition) {
             @if (edition.isbn13) {

@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CatalogApiService } from '../../../core/api/catalog-api.service';
-import type { Edition, LibraryItem, ReadingStatus, WorkDetail } from '../../../core/api/models';
+import type { BookFormat, Edition, LibraryItem, ReadingStatus, WorkDetail } from '../../../core/api/models';
 import { languageDisplayLabel } from '../../../shared/language-display';
 import { GenrePickerComponent } from '../../../shared/ui/genre-picker/genre-picker.component';
 import { LibraryApiService } from '../library-api.service';
@@ -65,6 +65,11 @@ export class LibraryDetailPage {
   protected readonly coverImageUrl = signal<string | null>(null);
   protected readonly uploadingCover = signal(false);
   private coverInitialized = false;
+
+  // Format correction (e.g. a Goodreads import that guessed wrong) — needs
+  // its own busy flag since changing it also invalidates format-specific
+  // edition fields (ISBN/page count/cover type/narrator/duration) server-side.
+  protected readonly changingFormat = signal(false);
 
   // Genre correction — needs the full work (title/description/year) so saving
   // genres never clobbers fields this page doesn't otherwise show.
@@ -248,6 +253,24 @@ export class LibraryDetailPage {
           input.value = '';
         },
         error: () => this.uploadingCover.set(false),
+      });
+  }
+
+  protected onFormatChange(format: BookFormat): void {
+    const item = this.itemResource.value();
+    if (!item || format === item.format || this.changingFormat()) return;
+
+    this.changingFormat.set(true);
+    this.api
+      .updateFormat(this.id, format)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.changingFormat.set(false);
+          this.itemResource.reload();
+          this.editionResource.reload();
+        },
+        error: () => this.changingFormat.set(false),
       });
   }
 

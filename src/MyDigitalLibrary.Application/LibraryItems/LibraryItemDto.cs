@@ -71,6 +71,8 @@ public sealed record UpdateLocationRequest(PhysicalLocationDto? Location);
 
 public sealed record UpdateStatusRequest(OwnershipStatus Status);
 
+public sealed record UpdateFormatRequest(BookFormat Format);
+
 public static class LibraryItemMapper
 {
     public static LibraryItemDto ToDto(DomainLibraryItem item, EditionDisplayInfo displayInfo, ReadingInfo readingInfo) => new(

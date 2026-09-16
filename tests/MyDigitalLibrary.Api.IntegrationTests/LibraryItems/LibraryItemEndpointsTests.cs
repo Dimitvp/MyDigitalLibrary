@@ -124,6 +124,25 @@ public sealed class LibraryItemEndpointsTests(ApiWebApplicationFactory factory) 
         indexOfApple.Should().BeLessThan(indexOfZebra);
     }
 
+    [Fact]
+    public async Task ChangeFormat_updates_the_item_and_its_edition_and_clears_now_invalid_fields()
+    {
+        var client = await AuthenticatedClientAsync("change-format@test.local");
+        var (_, itemId) = await CreateLibraryItemAsync(client, "Dune", ["Frank Herbert"], isbn13: "9780132350884");
+        var item = await client.GetFromJsonAsync<JsonElement>($"/api/v1/library-items/{itemId}");
+        var editionId = item.GetProperty("editionId").GetGuid();
+
+        var response = await client.SendPatchAsync($"/api/v1/library-items/{itemId}/format", new { format = "Audiobook" });
+
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        var updatedItem = await client.GetFromJsonAsync<JsonElement>($"/api/v1/library-items/{itemId}");
+        updatedItem.GetProperty("format").GetString().Should().Be("Audiobook");
+
+        var updatedEdition = await client.GetFromJsonAsync<JsonElement>($"/api/v1/editions/{editionId}");
+        updatedEdition.GetProperty("format").GetString().Should().Be("Audiobook");
+        updatedEdition.GetProperty("isbn13").ValueKind.Should().Be(JsonValueKind.Null, "ISBN only applies to physical/ebook editions");
+    }
+
     private async Task<HttpClient> AuthenticatedClientAsync(string email)
     {
         await AuthenticatedClientExtensions.CreateUserAsync(factory.Services, email);

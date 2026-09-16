@@ -14,7 +14,7 @@ public sealed class LibraryItem : Entity, IUserOwned
 {
     public Guid UserId { get; }
     public Guid EditionId { get; }
-    public BookFormat Format { get; }
+    public BookFormat Format { get; private set; }
     public OwnershipStatus Status { get; private set; }
     public Acquisition Acquisition { get; private set; }
     public PhysicalLocation? Location { get; private set; }
@@ -55,4 +55,20 @@ public sealed class LibraryItem : Entity, IUserOwned
     public void SetPersonalNote(string? note) => PersonalNote = note;
 
     public void UpdateAcquisition(Acquisition acquisition) => Acquisition = acquisition;
+
+    /// <summary>
+    /// Mirrors a <see cref="Catalog.Edition.ChangeFormat"/> correction on the
+    /// item's own denormalized copy of the format. Drops the physical
+    /// location if the item is no longer physical, matching <see cref="SetLocation"/>'s validation.
+    /// </summary>
+    public void ChangeFormat(BookFormat format)
+    {
+        if (format == Format)
+            return;
+
+        if (format != BookFormat.Physical)
+            Location = null;
+
+        Format = format;
+    }
 }

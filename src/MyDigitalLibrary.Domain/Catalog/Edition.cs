@@ -26,7 +26,7 @@ public sealed class Edition : Entity
     }
 
     public Guid WorkId { get; }
-    public BookFormat Format { get; }
+    public BookFormat Format { get; private set; }
 
     public Isbn? Isbn13 { get; private set; }
     public string? Publisher { get; private set; }
@@ -89,6 +89,36 @@ public sealed class Edition : Entity
     }
 
     public void SetCoverImage(Uri? url) => CoverImageUrl = url;
+
+    /// <summary>
+    /// Corrects a wrongly-recorded format (e.g. a Goodreads import that
+    /// guessed from a blank/unrecognized "Binding" column) after the fact.
+    /// Clears whatever fields no longer apply to the new format rather than
+    /// leaving stale data the throwing setters above would now reject —
+    /// ISBN/page count are print-or-ebook-only, cover type is physical-only,
+    /// narrator/duration are audiobook-only.
+    /// </summary>
+    public void ChangeFormat(BookFormat format)
+    {
+        if (format == Format)
+            return;
+
+        Format = format;
+
+        if (format != BookFormat.Physical)
+            CoverType = CoverType.Unknown;
+
+        if (format == BookFormat.Audiobook)
+        {
+            Isbn13 = null;
+            PageCount = null;
+        }
+        else
+        {
+            Narrator = null;
+            Duration = null;
+        }
+    }
 
     public void SetAudioDetails(string? narrator, AudioDuration? duration)
     {

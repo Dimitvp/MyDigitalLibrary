@@ -212,6 +212,26 @@ public sealed class LibraryItemService(IApplicationDbContext db, BookCatalogServ
         await db.SaveChangesAsync(ct);
     }
 
+    /// <summary>
+    /// Corrects the format on both the item and its underlying edition (kept
+    /// in sync — see <see cref="Domain.Catalog.Edition.ChangeFormat"/>). Common
+    /// after a Goodreads import guessed wrong from a blank/unrecognized
+    /// "Binding" column.
+    /// </summary>
+    public async Task ChangeFormatAsync(Guid id, BookFormat format, Guid userId, CancellationToken ct)
+    {
+        var item = await db.LibraryItems.FirstOrDefaultAsync(li => li.Id == id && li.UserId == userId, ct)
+            ?? throw NotFound(id);
+
+        var edition = await db.Editions.FirstOrDefaultAsync(e => e.Id == item.EditionId, ct)
+            ?? throw new NotFoundException("edition.not_found", $"Edition '{item.EditionId}' was not found.");
+
+        edition.ChangeFormat(format);
+        item.ChangeFormat(format);
+
+        await db.SaveChangesAsync(ct);
+    }
+
     private static IQueryable<T> Sort<T, TKey>(IQueryable<T> source, Expression<Func<T, TKey>> keySelector, bool descending) =>
         descending ? source.OrderByDescending(keySelector) : source.OrderBy(keySelector);
 
