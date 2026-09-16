@@ -59,7 +59,7 @@ public sealed class WishlistService(IApplicationDbContext db, BookCatalogService
             title = work.Title;
         }
 
-        await EnsureNotAlreadyOwnedAsync(title, request.Isbn13, request.Language, userId, ct);
+        await EnsureNotAlreadyOwnedAsync(title, request.Isbn13, request.Language, request.DesiredFormat, userId, ct);
 
         // If the caller already typed an ISBN/language on the add form, keep
         // it — creating the edition right away instead of discarding those
@@ -110,12 +110,15 @@ public sealed class WishlistService(IApplicationDbContext db, BookCatalogService
     /// Blocks adding a wish for a book already in "Имам я" (LibraryItems),
     /// checked by title and ISBN. Sold/GivenAway items don't count — the user
     /// no longer has those, so wanting one again is legitimate. An exact ISBN
-    /// match always blocks. A title match blocks too, UNLESS the caller named
-    /// a language that is known to differ from every owned copy's language —
-    /// owning a Bulgarian edition doesn't make wanting the English one a
-    /// duplicate, but we only know that when both languages are actually known.
+    /// match always blocks (it names one specific edition, so it can only ever
+    /// mean "the exact thing I already have"). A title match blocks only when
+    /// it's a genuine 1:1 duplicate — same format AND (as far as we know) the
+    /// same language as an owned copy. Owning the ebook doesn't mean you don't
+    /// also want the physical copy, and owning a Bulgarian edition doesn't
+    /// make wanting the English original a duplicate — those are legitimate
+    /// separate wants, not re-requests of what's already on the shelf.
     /// </summary>
-    private async Task EnsureNotAlreadyOwnedAsync(string? title, string? isbn13, string? language, Guid userId, CancellationToken ct)
+    private async Task EnsureNotAlreadyOwnedAsync(string? title, string? isbn13, string? language, BookFormat desiredFormat, Guid userId, CancellationToken ct)
     {
         Isbn? requestedIsbn = null;
         if (!string.IsNullOrWhiteSpace(isbn13))
@@ -133,7 +136,7 @@ public sealed class WishlistService(IApplicationDbContext db, BookCatalogService
             join e in db.Editions on li.EditionId equals e.Id
             join w in db.Works on e.WorkId equals w.Id
             where li.UserId == userId && li.Status != OwnershipStatus.Sold && li.Status != OwnershipStatus.GivenAway
-            select new { w.Id, w.Title, e.Isbn13, e.Language })
+            select new { w.Id, w.Title, e.Isbn13, e.Language, li.Format })
             .AsNoTracking()
             .ToListAsync(ct);
 
@@ -149,14 +152,12 @@ public sealed class WishlistService(IApplicationDbContext db, BookCatalogService
             var trimmedTitle = title.Trim();
             var titleMatches = owned.Where(o => string.Equals(o.Title.Trim(), trimmedTitle, StringComparison.OrdinalIgnoreCase)).ToList();
 
-            if (titleMatches.Count > 0)
-            {
-                var knownToBeDifferentLanguage = !string.IsNullOrWhiteSpace(language)
-                    && titleMatches.All(o => !string.IsNullOrWhiteSpace(o.Language) && !string.Equals(o.Language, language, StringComparison.OrdinalIgnoreCase));
+            var exactMatch = titleMatches.FirstOrDefault(o =>
+                o.Format == desiredFormat &&
+                (string.IsNullOrWhiteSpace(language) || string.IsNullOrWhiteSpace(o.Language) || string.Equals(o.Language, language, StringComparison.OrdinalIgnoreCase)));
 
-                if (!knownToBeDifferentLanguage)
-                    throw AlreadyOwned(titleMatches[0].Id, titleMatches[0].Title);
-            }
+            if (exactMatch is not null)
+                throw AlreadyOwned(exactMatch.Id, exactMatch.Title);
         }
     }
 
