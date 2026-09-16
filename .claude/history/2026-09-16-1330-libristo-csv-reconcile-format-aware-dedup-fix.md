@@ -139,10 +139,34 @@ owner's behalf.
 
 ## What's still open
 
-Waiting on the owner to confirm, for each of the 4 flagged titles (We Are
-Bellingcat, What We Owe the Future, The Marshmallow Test, How to Win an
-Information War): is the owned copy actually the ebook with a wrongly-recorded
-print ISBN, or actually the physical book mistagged as Ebook? Once known,
-either correct the existing `LibraryItem`'s format/ISBN, or (if it truly is
-the ebook) clear its ISBN so a separate physical want can be added the same
-way the other 13 titles were this session.
+**Resolved same day, in a follow-up round.** The owner clarified: all 4
+flagged titles (plus a 5th that surfaced the same way, see below) came from
+the Goodreads import, which only ever tracked *read/want-to-read*, never
+format/ownership — so their `LibraryItem.Format`/`Edition.Isbn13` were never
+reliable in the first place. Cleared the wrongly-carried print ISBN on each of
+the 4 owned editions (kept publisher/year/page-count, format left as-is for
+the owner to fix manually later — "едни ги имам в аудио, други съм чел
+преведената"), then added the 4 Libristo physical wants with their real ISBN,
+now unblocked.
+
+Also asked to verify the Krauss title pair by checking
+`lawrencemkrauss.com/book-archive/` plus a web search: confirmed **"The Known
+Unknowns: The Unsolved Mysteries of the Cosmos" (UK, ISBN 9781801100649) and
+"The Edge of Knowledge: Unsolved Mysteries of the Cosmos" (US, ISBN
+9781637588567) are the same book under different regional titles** — added
+both as separate physical wants (the owner explicitly asked for both, with
+the market-variant relationship recorded in each entry's note) rather than
+silently merging into one. Fetching "The Edge of Knowledge" turned up the
+exact same pattern as the 4 flagged titles — its existing owned "Ebook" copy
+also carries the print ISBN (9781637588567) — but since the owner's
+instruction only covered the named 4, left that owned copy's ISBN untouched
+this time and created the new want without an ISBN (cover/pages/note only),
+flagging the collision in its own note rather than assuming the same fix
+applies. **Investigating this one produced a scare, not a bug**: a `psql`
+query mid-debugging appeared to show a duplicate `Work` row and a
+"reassigned" `LibraryItem.EditionId` — turned out to be a wrong assumption
+(that title had simply never been cross-checked with its own ISBN/publisher
+columns before, in any earlier query this session), not actual data
+corruption; a from-scratch trace (every `Work`/`Edition`/`LibraryItem`/
+`WishlistEntry` row touching that title) confirmed exactly one of each,
+consistent all along.
