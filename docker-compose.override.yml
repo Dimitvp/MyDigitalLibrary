@@ -6,3 +6,7 @@ services:
   api:
     ports:
       - "8081:8080"
+
+  web:
+    ports:
+      - "4201:80"

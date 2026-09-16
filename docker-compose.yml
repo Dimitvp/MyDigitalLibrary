@@ -49,6 +49,14 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./src/web
+    depends_on:
+      - api
+    restart: unless-stopped
 
 volumes:
   pgdata:

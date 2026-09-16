@@ -4,7 +4,9 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 
 ## Development server
 
-To start a local development server, run:
+This app is normally served as part of `docker compose up` from the repo root (service `web`, see the top-level README) — a production build behind nginx, no manual step needed, restarts automatically with the rest of the stack. There's no hot-reload there though: a code change needs `docker compose up -d --build web`.
+
+For live-reload during active development, run the dev server standalone instead (outside Docker) — do NOT also have the `web` container running, both bind to port 4201:
 
 ```bash
 ng serve

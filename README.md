@@ -66,6 +66,14 @@ pass.
 
 ### Frontend
 
+По подразбиране `web` е част от `docker compose up` (виж Docker раздела по-долу) —
+production build, сервиран от nginx, вдига се и оцелява рестарт на Docker Desktop
+сам. **Няма hot-reload в Docker** — промяна в кода изисква
+`docker compose up -d --build web`.
+
+За активна разработка с live-reload пусни dev server-а локално вместо това
+(спри/не пускай Docker-ския `web`, за да няма конфликт на порт 4201):
+
 ```powershell
 cd src/web
 npm install
@@ -79,6 +87,9 @@ npm start
 паралелно, за да работят вход/списък/детайли/добавяне в браузъра. Вход с
 seed admin-а (`SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` от `.env`).
 
+**Не пускай `npm start` и Docker-ския `web` контейнер едновременно** — и двата
+искат порт 4201.
+
 ### Docker
 
 ```powershell
@@ -86,14 +97,24 @@ cp .env.example .env   # или ръчно създай .env със същите
 docker compose up --build -d
 ```
 
-Вдига `db` (Postgres 17) и `api`; API-то прилага EF Core миграциите и seed-ва
-минимални данни автоматично в Development. `docker-compose.override.yml`
-публикува портове само локално (по подразбиране `5532` за Postgres и `8081`
-за API — сменени от стандартните 5432/8080, ако вече имаш друг проект на тях).
+Вдига `db` (Postgres 17), `api` и `web` (Angular dev server); API-то прилага EF
+Core миграциите и seed-ва минимални данни автоматично в Development.
+`docker-compose.override.yml` публикува портове само локално (по подразбиране
+`5532` за Postgres, `8081` за API и `4201` за фронтенда — сменени от
+стандартните 5432/8080/4200, ако вече имаш друг проект на тях). Всичките три
+services имат `restart: unless-stopped`, така че се вдигат сами и след рестарт
+на Docker Desktop/машината.
 
+- `GET http://localhost:4201/wishlist` — приложението
 - `GET http://localhost:8081/health/live`
 - `GET http://localhost:8081/health/ready`
 - `GET http://localhost:8081/openapi/v1.json` — OpenAPI документ (Development)
+
+`web` е production build (multi-stage Dockerfile: `npm run build` → статичните
+файлове се сервират от nginx), не dev server — без hot-reload. `nginx.conf`
+проксира `/api`, `/health`, `/covers` към `api:8080` и връща `index.html` за
+всеки друг път (Angular router, client-side routing). Промяна в кода на
+фронтенда изисква `docker compose up -d --build web`.
 
 Вдига се и `db-backup` service (Postgres-alpine sidecar, виж
 [db-backup/README.md](db-backup/README.md)) — пази `db-backup/mydigitallibrary.dump`
