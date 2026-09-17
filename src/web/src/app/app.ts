@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -21,8 +21,22 @@ export class App implements OnInit {
   protected readonly auth = inject(AuthService);
   protected readonly languages: readonly SupportedLang[] = ['bg', 'en'];
 
+  // Narrow-viewport nav — collapsed by default, toggled by the hamburger
+  // button, closed again on any link tap (see closeMenu()) so it never
+  // lingers open across a route change (plan: phone-width header was
+  // overflowing off-screen with no wrap/collapse at all).
+  protected readonly menuOpen = signal(false);
+
   ngOnInit(): void {
     this.language.init();
+  }
+
+  protected toggleMenu(): void {
+    this.menuOpen.update((open) => !open);
+  }
+
+  protected closeMenu(): void {
+    this.menuOpen.set(false);
   }
 
   protected get activeLang(): SupportedLang {

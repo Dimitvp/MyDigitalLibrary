@@ -7,7 +7,9 @@
     "wishlist": "Wishlist",
     "bookSources": "Bookstores",
     "import": "Add via import",
-    "logout": "Log out"
+    "logout": "Log out",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "auth": {
     "login": {

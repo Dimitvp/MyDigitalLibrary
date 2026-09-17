@@ -4,7 +4,14 @@
   min-height: 100dvh;
 }
 
+// Below this, the header no longer fits brand + nav + language switch +
+// logout on one line — collapses into a hamburger-triggered dropdown
+// instead of overflowing off-screen (which is what a bare flex row with no
+// wrap/collapse did on a phone).
+$shell-collapse-breakpoint: 780px;
+
 .shell-header {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 1.5rem;
@@ -20,21 +27,50 @@
     color: var(--ink);
     white-space: nowrap;
   }
+}
 
-  nav {
-    display: flex;
-    gap: 1.25rem;
-    flex: 1;
+.menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-left: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
 
-    a {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 0.92rem;
-      font-weight: 500;
+  svg {
+    width: 1.4rem;
+    height: 1.4rem;
+  }
+}
 
-      &:hover {
-        color: var(--ink);
-      }
+.shell-collapsible {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+nav {
+  display: flex;
+  gap: 1.25rem;
+  flex: 1;
+  min-width: 0;
+
+  a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.92rem;
+    font-weight: 500;
+    white-space: nowrap;
+
+    &:hover {
+      color: var(--ink);
     }
   }
 }
@@ -43,6 +79,43 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+@media (max-width: $shell-collapse-breakpoint) {
+  .menu-toggle {
+    display: flex;
+  }
+
+  .shell-collapsible {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    z-index: 20;
+
+    &.open {
+      display: flex;
+    }
+  }
+
+  nav {
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .shell-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.9rem;
+  }
 }
 
 .lang-switch {

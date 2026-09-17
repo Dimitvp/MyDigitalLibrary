@@ -7,7 +7,9 @@
     "wishlist": "Искам я",
     "bookSources": "Книжарници",
     "import": "Добави чрез импорт",
-    "logout": "Изход"
+    "logout": "Изход",
+    "openMenu": "Отвори менюто",
+    "closeMenu": "Затвори менюто"
   },
   "auth": {
     "login": {

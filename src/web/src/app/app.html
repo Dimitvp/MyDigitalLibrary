@@ -1,25 +1,45 @@
 <header class="shell-header">
   <a class="brand" routerLink="/library">{{ 'app.title' | transloco }}</a>
 
-  <nav>
-    <a routerLink="/library">{{ 'nav.library' | transloco }}</a>
-    <a routerLink="/wishlist">{{ 'nav.wishlist' | transloco }}</a>
-    <a routerLink="/book-sources">{{ 'nav.bookSources' | transloco }}</a>
-    <a routerLink="/import">{{ 'nav.import' | transloco }}</a>
-  </nav>
+  <button
+    type="button"
+    class="menu-toggle"
+    (click)="toggleMenu()"
+    [attr.aria-expanded]="menuOpen()"
+    [attr.aria-label]="(menuOpen() ? 'nav.closeMenu' : 'nav.openMenu') | transloco"
+  >
+    @if (menuOpen()) {
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+    } @else {
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+    }
+  </button>
 
-  <div class="shell-actions">
-    <div class="lang-switch">
-      @for (lang of languages; track lang) {
-        <button type="button" [class.active]="lang === activeLang" (click)="setLang(lang)">
-          {{ lang }}
-        </button>
+  <div class="shell-collapsible" [class.open]="menuOpen()" (click)="closeMenu()">
+    <nav>
+      <a routerLink="/library">{{ 'nav.library' | transloco }}</a>
+      <a routerLink="/wishlist">{{ 'nav.wishlist' | transloco }}</a>
+      <a routerLink="/book-sources">{{ 'nav.bookSources' | transloco }}</a>
+      <a routerLink="/import">{{ 'nav.import' | transloco }}</a>
+    </nav>
+
+    <div class="shell-actions">
+      <div class="lang-switch">
+        @for (lang of languages; track lang) {
+          <button type="button" [class.active]="lang === activeLang" (click)="setLang(lang)">
+            {{ lang }}
+          </button>
+        }
+      </div>
+
+      @if (auth.isAuthenticated()) {
+        <button type="button" class="logout" (click)="logout()">{{ 'nav.logout' | transloco }}</button>
       }
     </div>
-
-    @if (auth.isAuthenticated()) {
-      <button type="button" class="logout" (click)="logout()">{{ 'nav.logout' | transloco }}</button>
-    }
   </div>
 </header>
 
