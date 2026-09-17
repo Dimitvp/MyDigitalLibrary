@@ -1,0 +1,10 @@
+# Shell scripts must always have LF line endings — a shebang script with
+# CRLF fails at runtime inside Linux containers ("illegal option -",
+# "invalid option") since the shell parses the trailing \r as part of the
+# preceding token. This bit both docker/db-backup/backup.sh and
+# docker/db-init/10-restore-if-exists.sh on first production deploy
+# (2026-09-17): `git archive` on a Windows machine with core.autocrlf=true
+# converts LF -> CRLF in its output even though the stored git blob itself
+# was LF, so this must be enforced here rather than assumed from what the
+# local working tree or `git show` looks like.
+*.sh text eol=lf
