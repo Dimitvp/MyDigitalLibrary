@@ -30,6 +30,7 @@
       "filterBy": "Filter by:",
       "filterAllReading": "All (read/unread)",
       "filterAllGenres": "All categories",
+      "filterNoGenre": "No category",
       "sortBy": "Sort by:",
       "sortDefault": "Default order",
       "sortAcquiredOn": "Date added",

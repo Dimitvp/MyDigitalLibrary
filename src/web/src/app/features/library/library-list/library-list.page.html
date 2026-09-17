@@ -52,8 +52,9 @@
       <option value="OnHold">{{ 'library.reading.OnHold' | transloco }}</option>
     </select>
 
-    <select #genreSelect (change)="onGenreFilterChange(genreSelect.value)">
+    <select #genreSelect [value]="genreFilter()" (change)="onGenreFilterChange(genreSelect.value)">
       <option value="">{{ 'library.list.filterAllGenres' | transloco }}</option>
+      <option value="__none__">{{ 'library.list.filterNoGenre' | transloco }}</option>
       @for (genre of genresResource.value(); track genre.id) {
         <option [value]="genre.id">{{ genreOptionLabel(genre) }}</option>
       }
@@ -76,7 +77,7 @@
 
   @if (listResource.isLoading()) {
     <p class="status-text">{{ 'common.loading' | transloco }}</p>
-  } @else if (listResource.value().items.length === 0) {
+  } @else if (groups().length === 0) {
     <p class="empty">{{ 'library.list.empty' | transloco }}</p>
   } @else {
     @for (langGroup of groups(); track langGroup.languageKey) {

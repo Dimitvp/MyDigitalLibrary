@@ -26,6 +26,12 @@ const UNKNOWN_LANGUAGE = '￿'; // sorts after every real language code
 const NO_GENRE = '￿'; // sorts after every real genre name
 const SEARCH_DEBOUNCE_MS = 250;
 
+// Sentinel for the "Без категория" filter option — not a real genre id, so it
+// must never reach the API's genreId param (the backend has no notion of
+// "genre is absent"); filtering for it happens client-side instead, same as
+// the "Без категория" grouping bucket already does.
+const NO_GENRE_FILTER = '__none__';
+
 export type ReadingStatusFilter = '' | 'NotStarted' | 'Reading' | 'Finished' | 'Abandoned' | 'OnHold';
 export type SortField = '' | 'title' | 'author' | 'acquiredOn';
 export type SortDirection = 'asc' | 'desc';
@@ -95,7 +101,7 @@ export class LibraryListPage {
       const params = new URLSearchParams();
       params.set('q', this.searchQuery());
       params.set('pageSize', '1000');
-      if (this.genreFilter()) params.set('genreId', this.genreFilter());
+      if (this.genreFilter() && this.genreFilter() !== NO_GENRE_FILTER) params.set('genreId', this.genreFilter());
       if (this.readingStatusFilter()) params.set('readingStatus', this.readingStatusFilter());
       if (this.ownershipStatusFilter()) params.set('status', this.ownershipStatusFilter());
       return `/api/v1/library-items?${params.toString()}`;
@@ -118,7 +124,8 @@ export class LibraryListPage {
   // already fetched in one page. The chosen sort field/direction orders the
   // items inside each genre bucket; it never flattens the grouping itself.
   protected readonly groups = computed<LanguageGroup[]>(() => {
-    const items = this.listResource.value().items;
+    const allItems = this.listResource.value().items;
+    const items = this.genreFilter() === NO_GENRE_FILTER ? allItems.filter((item) => item.genreNames.length === 0) : allItems;
     const genres = this.genresResource.value();
     const lang = this.language.activeLangSignal();
     const sortBy = this.sortBy();
