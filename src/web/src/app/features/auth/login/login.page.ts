@@ -24,11 +24,16 @@ export class LoginPage {
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly submitting = signal(false);
+  protected readonly showPassword = signal(false);
 
   protected readonly form = new FormGroup<LoginForm>({
     email: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
     password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
   });
+
+  protected toggleShowPassword(): void {
+    this.showPassword.update((shown) => !shown);
+  }
 
   protected submit(): void {
     if (this.form.invalid || this.submitting()) {

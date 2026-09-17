@@ -14,7 +14,9 @@
       "title": "Вход",
       "email": "Имейл",
       "password": "Парола",
-      "submit": "Вход"
+      "submit": "Вход",
+      "showPassword": "Покажи паролата",
+      "hidePassword": "Скрий паролата"
     }
   },
   "library": {

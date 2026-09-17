@@ -35,6 +35,43 @@
     background: transparent;
     color: inherit;
     font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .password-field {
+    position: relative;
+    display: flex;
+
+    input {
+      padding-right: 2.5rem;
+    }
+
+    .toggle-password {
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 100%;
+      width: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      margin: 0;
+      padding: 0;
+      color: #888;
+      cursor: pointer;
+
+      &:hover {
+        color: inherit;
+      }
+
+      svg {
+        width: 1.15rem;
+        height: 1.15rem;
+      }
+    }
   }
 
   button {
