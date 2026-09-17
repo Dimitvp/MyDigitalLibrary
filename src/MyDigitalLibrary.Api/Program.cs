@@ -214,18 +214,27 @@ app.UseExceptionHandler();
 // scheme/client IP carried in X-Forwarded-Proto/X-Forwarded-For — without
 // this, every cookie would be issued without the Secure flag and every
 // request would take a pointless extra HTTPS-redirect round trip.
-// KnownNetworks/KnownProxies are cleared (trust the forwarded headers from
-// any peer) rather than left at their loopback-only default: Docker's
-// port-publishing NATs the proxy's connection to the bridge gateway IP, not
-// literal loopback, so the default wouldn't recognize it as trusted — safe
-// here specifically because the API port is bound to 127.0.0.1 in
-// production, so nginx is the only thing that can ever connect at all.
-app.UseForwardedHeaders(new ForwardedHeadersOptions
+//
+// KnownIPNetworks/KnownProxies must be .Clear()'d, not set via `= { }` —
+// that object-initializer syntax on an already-populated collection
+// property calls .Add() for each element, and with zero elements it's a
+// no-op that silently leaves the framework's own loopback-only default in
+// place (found live: the API sat behind two hops — host nginx, then this
+// app's own `web` container over the Docker bridge network, whose IP is
+// never loopback — so the untouched default rejected the forwarded headers
+// entirely and every cookie kept coming back without Secure despite
+// terminating real HTTPS). Cleared explicitly here to trust forwarded
+// headers from any peer instead — safe specifically because the API port
+// is bound to 127.0.0.1 in production, so nothing but this app's own `web`
+// container (over the internal Docker network) or nginx (over loopback)
+// can ever reach it at all.
+var forwardedHeadersOptions = new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-    KnownIPNetworks = { },
-    KnownProxies = { },
-});
+};
+forwardedHeadersOptions.KnownIPNetworks.Clear();
+forwardedHeadersOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeadersOptions);
 
 app.UseRateLimiter();
 
