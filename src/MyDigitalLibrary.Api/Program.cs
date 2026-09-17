@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -91,6 +93,24 @@ builder.Services.AddAuthorization();
 // client reads the token from GET /api/v1/auth/antiforgery and echoes it back
 // in this header on every state-changing request.
 builder.Services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
+
+// Defense-in-depth alongside Identity's own per-account lockout (see the
+// login handler in AuthEndpoints): caps *attempts*, not accounts, so it
+// also blunts a spray of guesses across many different emails. Keyed by
+// remote IP, which is only correct once ForwardedHeaders below has run —
+// order matters, this must stay after that middleware in the pipeline.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("login", httpContext => RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        factory: _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
+            Window = TimeSpan.FromMinutes(5),
+            QueueLimit = 0,
+        }));
+});
 
 builder.Services.AddScoped<BookCatalogService>();
 builder.Services.AddScoped<WorkService>();
@@ -187,11 +207,37 @@ var app = builder.Build();
 
 app.UseExceptionHandler();
 
-if (app.Environment.IsDevelopment())
+// Must run before anything that reads Request.Scheme/RemoteIpAddress
+// (HttpsRedirection, the cookie's SecurePolicy=SameAsRequest, rate limiting
+// below). Behind the host-level nginx reverse proxy this sits behind in
+// production, the origin only ever sees plain HTTP with the real
+// scheme/client IP carried in X-Forwarded-Proto/X-Forwarded-For — without
+// this, every cookie would be issued without the Secure flag and every
+// request would take a pointless extra HTTPS-redirect round trip.
+// KnownNetworks/KnownProxies are cleared (trust the forwarded headers from
+// any peer) rather than left at their loopback-only default: Docker's
+// port-publishing NATs the proxy's connection to the bridge gateway IP, not
+// literal loopback, so the default wouldn't recognize it as trusted — safe
+// here specifically because the API port is bound to 127.0.0.1 in
+// production, so nginx is the only thing that can ever connect at all.
+app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    KnownIPNetworks = { },
+    KnownProxies = { },
+});
+
+app.UseRateLimiter();
+
+if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
-    using var scope = app.Services.CreateScope();
+// Runs in every environment, not just Development: a single-container app
+// with no other migration/seed path, so this is how schema and the one
+// admin account come to exist at all in production. Safe as auto-migrate
+// only because this is a single instance, never horizontally scaled.
+using (var scope = app.Services.CreateScope())
+{
     var db = scope.ServiceProvider.GetRequiredService<MyDigitalLibraryDbContext>();
     await db.Database.MigrateAsync();
 
@@ -199,7 +245,8 @@ if (app.Environment.IsDevelopment())
     var seedLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("IdentitySeeder");
     var adminUserId = await IdentitySeeder.SeedAdminUserAsync(userManager, app.Configuration, seedLogger);
 
-    if (adminUserId is { } userId)
+    // Demo/placeholder books — Development only, never in production.
+    if (app.Environment.IsDevelopment() && adminUserId is { } userId)
         await DevelopmentSeeder.SeedAsync(db, userId);
 }
 

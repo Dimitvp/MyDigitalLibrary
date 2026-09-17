@@ -5,10 +5,12 @@ using Microsoft.Extensions.Logging;
 namespace MyDigitalLibrary.Infrastructure.Auth;
 
 /// <summary>
-/// Development-only: creates the single seed admin user from
-/// SEED_ADMIN_EMAIL/SEED_ADMIN_PASSWORD (plan section 8). Never runs outside
-/// Development, and the password is read from configuration/environment only
-/// — it is never hard-coded or committed.
+/// Creates the single admin user from SEED_ADMIN_EMAIL/SEED_ADMIN_PASSWORD
+/// (plan section 8) if it doesn't already exist — runs in every environment,
+/// including production, since there is no self-registration endpoint and
+/// this is the only way the one account this single-user app needs comes to
+/// exist. The password is read from configuration/environment only — it is
+/// never hard-coded or committed.
 /// </summary>
 public static class IdentitySeeder
 {

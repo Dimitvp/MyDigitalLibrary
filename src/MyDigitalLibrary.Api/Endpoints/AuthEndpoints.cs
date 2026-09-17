@@ -24,12 +24,17 @@ public static class AuthEndpoints
 
         group.MapPost("/login", async (LoginRequest request, SignInManager<ApplicationUser> signInManager) =>
         {
-            var result = await signInManager.PasswordSignInAsync(request.Email, request.Password, isPersistent: true, lockoutOnFailure: false);
+            // lockoutOnFailure: true — repeated wrong passwords against a
+            // known email lock that account out (Identity's default: 5
+            // attempts, 5-minute lockout), on top of the IP-based rate
+            // limit below which blunts guessing across many different
+            // emails instead.
+            var result = await signInManager.PasswordSignInAsync(request.Email, request.Password, isPersistent: true, lockoutOnFailure: true);
 
             return result.Succeeded
                 ? Results.Ok()
                 : Results.Problem(statusCode: StatusCodes.Status401Unauthorized, title: "auth.invalid_credentials");
-        }).AddEndpointFilter<AntiforgeryFilter>();
+        }).AddEndpointFilter<AntiforgeryFilter>().RequireRateLimiting("login");
 
         group.MapPost("/logout", async (SignInManager<ApplicationUser> signInManager) =>
         {
