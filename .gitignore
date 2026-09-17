@@ -497,3 +497,4 @@ npm-debug.log*
 # Local Postgres backup dump — host-only disaster-recovery file, never commit
 /db-backup/*
 !/db-backup/README.md
+!/db-backup/pull-from-production.ps1

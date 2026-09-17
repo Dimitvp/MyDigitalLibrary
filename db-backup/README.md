@@ -33,6 +33,36 @@
   трият файловете на повече от ~6 месеца. Винаги остават поне 10 backup-а
   на диска.
 
+## Off-site копие от production (biblioteka.svara.bg)
+
+От 2026-09-17 базата на production сървъра (Hetzner) е каноничният
+източник — вижте `.claude/history/2026-09-17-1700-local-to-production-data-migration.md`.
+Production си има собствен `db-backup` sidecar (същия механизъм), но
+пази backup-ите на **същия диск** като живата база — Hetzner-ският weekly
+VM snapshot покрива и това, но не е истинско off-site копие (все още е
+"вътре" в Hetzner).
+
+`pull-from-production.ps1` тегли най-новия production `.dump` в тази
+папка (пропуска изтеглянето, ако вече го има локално по име). Регистриран
+е като Windows Scheduled Task (`MyDigitalLibrary-PullProductionBackup`,
+ежедневно, само докато сте logged in — за да има достъп до SSH ключа):
+
+```powershell
+Get-ScheduledTask -TaskName "MyDigitalLibrary-PullProductionBackup"
+Start-ScheduledTask -TaskName "MyDigitalLibrary-PullProductionBackup"  # ръчно изпълнение
+```
+
+Понеже файловете кацат в тази същата папка и `10-restore-if-exists.sh`
+винаги възстановява от **най-новия** `.dump` (сортирано по timestamp),
+изтеглено production копие автоматично става това, от което би се
+възстановила локалната база, ако `pgdata` volume-ът някога тръгне
+празен — без нужда от отделна restore логика.
+
+Ако пренасяш проекта на нова машина, task-ът трябва да се регистрира
+наново там (`Register-ScheduledTask`, вижте историята на сесията за
+точната команда) — самият `.ps1` е в git, но Task Scheduler конфигурацията
+е локална за тази машина.
+
 Ръчен backup/restore (докато стекът работи):
 
 ```powershell
