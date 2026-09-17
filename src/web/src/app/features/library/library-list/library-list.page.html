@@ -59,6 +59,13 @@
         <option [value]="genre.id">{{ genreOptionLabel(genre) }}</option>
       }
     </select>
+
+    <select #formatSelect [value]="formatFilter()" (change)="onFormatFilterChange(formatSelect.value)">
+      <option value="">{{ 'library.list.filterAllFormats' | transloco }}</option>
+      <option value="Physical">{{ 'library.format.Physical' | transloco }}</option>
+      <option value="Ebook">{{ 'library.format.Ebook' | transloco }}</option>
+      <option value="Audiobook">{{ 'library.format.Audiobook' | transloco }}</option>
+    </select>
   </div>
 
   <div class="sort-row">

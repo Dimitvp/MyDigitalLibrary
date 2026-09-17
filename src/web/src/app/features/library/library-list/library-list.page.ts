@@ -2,7 +2,7 @@ import { httpResource } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import type { Genre, LibraryItem, OwnershipStatus, PagedResult, StatisticsDto } from '../../../core/api/models';
+import type { BookFormat, Genre, LibraryItem, OwnershipStatus, PagedResult, StatisticsDto } from '../../../core/api/models';
 import { LanguageService } from '../../../core/i18n/language.service';
 import { genreDisplayName, translateGenreName } from '../../../shared/genre-display';
 import { languageDisplayLabel } from '../../../shared/language-display';
@@ -74,6 +74,7 @@ export class LibraryListPage {
 
   protected readonly searchQuery = signal('');
   protected readonly genreFilter = signal('');
+  protected readonly formatFilter = signal<BookFormat | ''>('');
   protected readonly readingStatusFilter = signal<ReadingStatusFilter>('');
   protected readonly ownershipStatusFilter = signal<OwnershipStatus | ''>('');
   protected readonly sortBy = signal<SortField>('');
@@ -102,6 +103,7 @@ export class LibraryListPage {
       params.set('q', this.searchQuery());
       params.set('pageSize', '1000');
       if (this.genreFilter() && this.genreFilter() !== NO_GENRE_FILTER) params.set('genreId', this.genreFilter());
+      if (this.formatFilter()) params.set('format', this.formatFilter());
       if (this.readingStatusFilter()) params.set('readingStatus', this.readingStatusFilter());
       if (this.ownershipStatusFilter()) params.set('status', this.ownershipStatusFilter());
       return `/api/v1/library-items?${params.toString()}`;
@@ -181,6 +183,10 @@ export class LibraryListPage {
 
   protected onGenreFilterChange(value: string): void {
     this.genreFilter.set(value);
+  }
+
+  protected onFormatFilterChange(value: string): void {
+    this.formatFilter.set(value as BookFormat | '');
   }
 
   // The stat cards double as quick filters — clicking one narrows the list to
