@@ -1,0 +1,98 @@
+# Production stack for biblioteka.svara.bg — deployed alongside svara-bg on
+# the same Hetzner host (svara-prod, 46.62.253.87). Single, complete file,
+# deliberately not composed via `-f docker-compose.yml -f docker-compose.prod.yml`
+# — that exact combination is known broken on this exact host (container
+# networking silently fails to attach to eth0), root-caused for svara-bg in
+# its own .claude/reports/2026-08-12-1338-hetzner-deployment-postmortem.md.
+# A single hand-written file avoids the bug entirely; keep it that way.
+#
+# Every port is bound to 127.0.0.1 only — the host-level nginx
+# (deploy/nginx/biblioteka.svara.bg.conf) is the sole public entry point on
+# 80/443, mirroring svara-bg's own SEC-H3 pattern. The `web` service already
+# does its own internal reverse-proxying to `api` (see src/web/nginx.conf),
+# so host nginx only ever needs to reach `web` — `api` and `db` are published
+# on loopback purely for direct maintenance access (psql, curl) over SSH.
+#
+# Run:   docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+# Per service: docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build <service>
+#
+# Secrets NOT in this file (server-only, in .env.production, gitignored,
+# chmod 600): POSTGRES_DB/POSTGRES_USER/POSTGRES_PASSWORD,
+# SEED_ADMIN_EMAIL/SEED_ADMIN_PASSWORD (a real password — NOT the local dev
+# default), GOOGLE_BOOKS_API_KEY.
+services:
+
+  db:
+    image: postgres:17-alpine
+    container_name: biblioteka-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:5532:5432"
+    volumes:
+      - biblioteka-pgdata:/var/lib/postgresql/data
+      - ./db-backup:/backup:ro
+      - ./docker/db-init/10-restore-if-exists.sh:/docker-entrypoint-initdb.d/10-restore-if-exists.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: always
+
+  db-backup:
+    image: postgres:17-alpine
+    container_name: biblioteka-db-backup
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGPORT: 5432
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - ./db-backup:/backup
+      - ./docker/db-backup/backup.sh:/scripts/backup.sh:ro
+    command: ["sh", "/scripts/backup.sh"]
+    restart: always
+
+  api:
+    build:
+      context: .
+      dockerfile: src/MyDigitalLibrary.Api/Dockerfile
+    container_name: biblioteka-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__MyDigitalLibrary: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+      GoogleBooks__ApiKey: ${GOOGLE_BOOKS_API_KEY}
+      Covers__RootDirectory: /app/covers
+    ports:
+      - "127.0.0.1:8081:8080"
+    volumes:
+      - biblioteka-covers:/app/covers
+      - biblioteka-dpkeys:/app/keys
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+
+  web:
+    build:
+      context: ./src/web
+    container_name: biblioteka-web
+    ports:
+      - "127.0.0.1:4201:80"
+    depends_on:
+      - api
+    restart: always
+
+volumes:
+  biblioteka-pgdata:
+  biblioteka-covers:
+  biblioteka-dpkeys:
